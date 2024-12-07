@@ -11,8 +11,8 @@ const errorOccured = ref(false);
 const editor = useEditor({
   content: props.modelValue,
   extensions: [TiptapStarterKit],
-  onUpdate: ({ editor }) => emits('update:modelValue', validateContent(editor.getHTML())),
-  onBlur: ({ editor }) => emits('update:modelValue', validateContent(editor.getHTML())),
+  onUpdate: ({ editor }) => emits('update:modelValue', validateContent(editor.getHTML()) ? editor.getHTML() : ''),
+  onBlur: ({ editor }) => emits('update:modelValue', validateContent(editor.getHTML()) ? editor.getHTML() : ''),
 });
 
 const validateContent = (htmlContent) => {
