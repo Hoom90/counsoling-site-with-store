@@ -1,0 +1,28 @@
+.height-40{
+    height: 40px !important;
+}
+
+.height-42{
+    height: 42px !important;
+}
+
+.height-62{
+    height: 62px !important;
+}
+
+.rounded-right-top-none{
+    border-top-right-radius: 0 !important;
+}
+
+.rounded-left-top-xl{
+    border-top-left-radius: 14px !important;
+}
+
+.rounded-bottom-xl{
+    border-bottom-left-radius: 14px !important;
+    border-bottom-right-radius: 14px !important;
+}
+
+.cursor-pointer{
+    cursor: pointer;
+}
