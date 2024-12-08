@@ -2,7 +2,7 @@
 import { userStore } from "@/stores/userStore"
 import '@/assets/css/style.css'
 onMounted(()=>{
-  var user = userStore()
+  const user = userStore()
   user.setAuth(localStorage.getToken())
   user.setUser(localStorage.getUser())
 })
