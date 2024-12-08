@@ -9,7 +9,7 @@ import { userStore } from "@/stores/userStore"
 // import { loginMobile } from "@/stores/loginStore"
 const router = useRouter();
 
-var user = userStore()
+const user = userStore()
 
 const verifyForm = ref({});
 

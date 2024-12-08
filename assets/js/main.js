@@ -92,7 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
   /**
    * Hero Slider
    */
-  var swiper = new Swiper(".sliderFeaturedPosts", {
+  const swiper = new Swiper(".sliderFeaturedPosts", {
     spaceBetween: 0,
     speed: 500,
     centeredSlides: true,

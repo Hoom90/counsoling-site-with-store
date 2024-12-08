@@ -242,8 +242,8 @@ const selectedReserve = (reserve) => {
 
   let startTime = regExTime.exec(reserve.startTime);
   let endTime = regExTime.exec(reserve.endTime);
-  var from = parseInt(((parseInt(startTime[1]) * 60) + parseInt(startTime[2])))
-  var to = parseInt(((parseInt(endTime[1]) * 60) + parseInt(endTime[2])))
+  let from = parseInt(((parseInt(startTime[1]) * 60) + parseInt(startTime[2])))
+  let to = parseInt(((parseInt(endTime[1]) * 60) + parseInt(endTime[2])))
 
   state.selectReserve.duration = to - from
 }

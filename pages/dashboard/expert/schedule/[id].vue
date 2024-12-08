@@ -31,16 +31,16 @@ let regExTime = /([0-9]?[0-9]):([0-9][0-9]):([0-9][0-9])/;
 
 function location(item) {
   let time = regExTime.exec(item.startTime);
-  var from = parseInt(((parseInt(time[1]) * 60) + parseInt(time[2])))
-  var to = parseInt(((parseInt(time[1]) * 60) + parseInt(time[2])))
+  const from = parseInt(((parseInt(time[1]) * 60) + parseInt(time[2])))
+  const to = parseInt(((parseInt(time[1]) * 60) + parseInt(time[2])))
   return parseInt(((parseInt(time[1]) * 60) + parseInt(time[2]))) + "px"
 }
 
 function length(item) {
   let startTime = regExTime.exec(item.startTime);
   let endTime = regExTime.exec(item.endTime);
-  var from = parseInt(((parseInt(startTime[1]) * 60) + parseInt(startTime[2])))
-  var to = parseInt(((parseInt(endTime[1]) * 60) + parseInt(endTime[2])))
+  const from = parseInt(((parseInt(startTime[1]) * 60) + parseInt(startTime[2])))
+  const to = parseInt(((parseInt(endTime[1]) * 60) + parseInt(endTime[2])))
   return (to - from) + "px"
 }
 
