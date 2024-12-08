@@ -122,6 +122,18 @@ const save = async () => {
     }
 }
 
+const uploadImage = (value) => {
+  state.imageError = false
+  state.selectedImage = value
+  state.user.imageId = value
+}
+
+const deleteUploadedImage = () => {
+  state.user.imageId = null
+  state.selectedImage = null
+  state.imageError = true
+}
+
 </script>
 <template>
     <v-form @submit.prevent="save" ref="verifyForm" id="mainForm">
@@ -169,7 +181,10 @@ const save = async () => {
             <v-col cols="12" md="4" lg="3">
                 <v-card class="pa-3 mb-5">
                     <div class="align-items-center text-center">
-                        <imageUploader v-model="state.user.imageId" customeClass="mx-auto"></imageUploader>
+                        <BaseImage :src="state.selectedImage" class="mb-1" />
+                        <Uploader v-if="!state.selectedImage" @update:model-value="uploadImage" :hasImage="false" :multiple="false" :is-private="false"/>
+                        <v-btn v-if="state.selectedImage" class="bg-red w-100" prepend-icon="mdi-delete-forever" @click="deleteUploadedImage">حذف</v-btn>
+                        <!-- <imageUploader v-model="state.user.imageId" customeClass="mx-auto"></imageUploader> -->
                         <hr class="my-4" />
 
                         <v-btn type="submit" variant="tonal" class="bg-blue-grey-lighten-1" block
