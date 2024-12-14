@@ -1,4 +1,5 @@
 <script setup>
+definePageMeta({ layout: 'account', middleware: 'route-check', })
 const route= useRoute()
 const state = reactive({
   data: null,
@@ -43,8 +44,3 @@ const getData = async () =>{
     </div>
   </fieldset>
 </template>
-
-
-<style>
-
-</style>

@@ -250,7 +250,7 @@ const postTopic = async (r) => {
             </v-col>
           </v-row>
           <v-btn color="theme-blue" class="w-100 mt-5 rounded-xl" @click="getNewData"
-            v-if="state.payload.totalPages != 0">بیشتر</v-btn>
+            v-if="state.payload.topicHeader.pageIndex < state.payload.totalPages">بیشتر</v-btn>
         </div>
 
         <v-card v-if="state.payload.totalPages == 0" class="rounded-xl mt-5 text-center" elevation="0">

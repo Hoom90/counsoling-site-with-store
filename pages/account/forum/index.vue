@@ -1,5 +1,5 @@
 <script setup>
-import validator from "@/composables/validator"
+definePageMeta({ layout: 'account', middleware: 'route-check', })
 const verifyForm = ref({});
 const router = useRouter();
 const state= reactive({
@@ -19,9 +19,9 @@ const state= reactive({
 })
 
 //#region GET
-onMounted(async()=>{
-  await getData()
-  await getCategory()
+onMounted(()=>{
+  getData()
+  getCategory()
 });
 
 const getData = async () => {
@@ -30,19 +30,13 @@ const getData = async () => {
     state.records = res.data
     state.pagination = res.metadata
   })
-  .catch((error)=>{
-    common.showError(error?.data?.messages)
-  })
+  .catch((error)=>common.showError(error?.data?.messages))
 }
 
 const getCategory = async () =>{
   await axiosApi().post(apiPath.public.Category.post,{})
-  .then((res)=>{
-    state.category = res.data
-  })
-  .catch((error)=>{
-    common.showError(error?.data?.messages)
-  })
+  .then((res)=>state.category = res.data)
+  .catch((error)=>common.showError(error?.data?.messages))
 }
 
 const changePageing = () => {
@@ -65,9 +59,7 @@ const postData = async (r) =>{
       common.showMessage(res.message)
       getData()
     })
-    .catch((error)=>{
-      common.showError(error?.data?.messages)
-    })
+    .catch((error)=>common.showError(error?.data?.messages))
   }
   state.dialogAdd = false
   state.newTopic={
@@ -99,9 +91,7 @@ const editData = async (r) =>{
       common.showMessage(res.messages)
       getData()
     })
-    .catch((error)=>{
-      common.showError(error.messages)
-    })
+    .catch((error)=>common.showError(error.messages))
   }
   state.editModal = false
   state.current = {}
@@ -116,9 +106,7 @@ const deleteData = async (r) =>{
       common.showMessage(res.messages)
       getData()
     })
-    .catch(error=>{
-      common.showError(error?.data?.messages)
-    })
+    .catch(error=>common.showError(error?.data?.messages))
   }
   state.deleteModal = false
   state.current = {}
@@ -144,19 +132,24 @@ const handleDelete = (item) =>{
 </script>
 
 <template>
-  <fieldset class="myFieldset rounded-xl mb-5 d-flex align-center">
-    <h3>تالار های گفتگوی من</h3>
-    <v-spacer></v-spacer> 
-    <v-btn color="info" variant="tonal" @click="handleAdd">افزودن تاپیک جدید</v-btn>
+  <fieldset class="myFieldset rounded-xl mb-5 d-flex align-center ga-5">
+    <v-btn icon="mdi-chevron-right" class="bg-teal d-md-none" to="/account/home"></v-btn>
+    <p class="text-18"><strong>تالار های گفتگوی من</strong></p>
+    <v-spacer></v-spacer>
+    <v-btn color="info" variant="tonal" class="d-none d-md-block" @click="handleAdd">افزودن تاپیک جدید</v-btn>
   </fieldset>
 
   <fieldset class="myFieldset rounded-xl">
     <v-table>
       <thead>
-      <tr>
-        <th v-for="header in ['ردیف','عنوان','دسته بندی','وضعیت','تاریخ ایجاد']">{{ header }}</th>
-        <th></th>
-      </tr>
+        <tr>
+          <th>ردیف</th>
+          <th>عنوان</th>
+          <th>دسته بندی</th>
+          <th>وضعیت</th>
+          <th>تاریخ ایجاد</th>
+          <th></th>
+        </tr>
       </thead>
       <tbody>
       <tr v-for="(item,index) in state.records" :key="item.id">

@@ -80,24 +80,24 @@ await fetchApi.post(apiPath.public.Article.get.all, { body: state.page.header })
 <template>
   <v-container style="min-height: 800px;">
     <div ref="table">
-      <v-row class="d-flex justify-center align-center ga-3 mb-5" style="flex-direction: column;">
+      <v-row class="d-flex justify-center align-center ga-3 mb-5 flex-column">
         <h2 style="font-size: 1.3rem;">جدیدترین مقالات</h2>
       </v-row>
       <v-row>
         <v-col cols="6" sm="4" md="3" lg="2" v-for="item in state.data" :key="item.id">
           <nuxtLink :to="`article/${item.id}/${item.title.replaceAll(' ','-')}`">
-            <v-card class="grid-box rounded-xl" min-height="280">
-              <v-card-item class="pa-3 position-relative" style="min-height: 208px">
-                <BaseImage :src="item.image" class="rounded-xl" is-thumbnail="true"
-                  :alt="item.title"></BaseImage>
-                <div class="rating">
-                  <v-icon class="text-white">mdi-magnify</v-icon>
-                </div>
+            <v-card class="grid-box rounded-xl h-100" min-height="280">
+              <v-card-item class="pa-3 position-relative">
+                <BaseImage :src="item.image" class="rounded-xl" :is-thumbnail="true" :alt="item.title"/>
               </v-card-item>
               <v-divider></v-divider>
-              <v-card-text class="mb-5" style="min-height: 60px"><h3 style="text-wrap: pretty;">{{ item.title }}</h3></v-card-text>
+              <v-card-text style="min-height: 60px">
+                <p style="text-wrap: pretty;">
+                  <strong>{{ `${item.title.slice(0,38)}${item.title.length>38?'...':''}` }}</strong>
+                </p>
+              </v-card-text>
               <v-card-item class="py-1">
-                <h4>
+                <p>
                   <span class="ml-9">
                     <v-icon size="13" class="ml-2">mdi-calendar-month-outline</v-icon>
                     <small>{{ dateConverter.convertToJalali(item.createdOn) }}</small>
@@ -106,7 +106,7 @@ await fetchApi.post(apiPath.public.Article.get.all, { body: state.page.header })
                     <v-icon size="13" class="ml-2">mdi-eye-outline</v-icon>
                     <small>{{ item.visitedCount }}</small>
                   </span>
-                </h4>
+                </p>
               </v-card-item>
             </v-card>
           </nuxtLink>

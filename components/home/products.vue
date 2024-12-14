@@ -1,10 +1,9 @@
 <script setup>
-const url = import.meta.env.VITE_STORE_URL
-
 import 'swiper/css';
 import 'swiper/css/navigation';
 import { Swiper, SwiperSlide } from 'swiper/vue';
 import { Navigation } from 'swiper/modules';
+const app = appStore()
 const state = reactive({
   data:[],
   components: {
@@ -16,10 +15,9 @@ const modules = [Navigation]
 
 const data = await fetchApi.post(apiPath.public.Product.getAll, {body:{}})
   .then((res) => {
+    app.setloading(false)
     return res.data.value.data;
-  }).catch(error => {
-    common.showError(error?.data?.messages)
-  })
+  }).catch(error => common.showError(error?.data?.messages))
 </script>
 <template>
   <v-container>
@@ -66,9 +64,10 @@ const data = await fetchApi.post(apiPath.public.Product.getAll, {body:{}})
           class="overflow-visible">
           <swiper-slide v-for="item in data" :key="item.id">
             <nuxtLink :to="`/product/${item.id}-${item.title.replaceAll(' ', '-')}`">
-              <v-card class="d-flex flex-column justify-space-between rounded-xl" min-height="345" hover>
+              <v-card class="d-flex flex-column justify-space-between rounded-xl" hover>
                 <v-card-text class="pa-0">
-                  <BaseImage :src="item.imageList.find(x=>x.isDefault).id" is-thumbnail="true" :alt="item.title"></BaseImage>
+                  <!-- <BaseImage :src="item.imageList.find(x=>x.isDefault).id" :is-thumbnail="true" :alt="item.title" style="aspect-ratio: 1;"/> -->
+                  <BaseImage :src="item.imageList.find(x=>x.isDefault).id" :is-thumbnail="true" :alt="item.title"/>
                   <p class="height-42 text-wrap pa-3">
                     <strong>{{ item.title }}</strong>
                   </p>

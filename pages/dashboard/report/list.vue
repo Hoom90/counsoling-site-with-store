@@ -1,4 +1,8 @@
 <script setup>
+definePageMeta({
+  middleware: 'route-check',
+  layout: 'dashboard'
+});
 const tab = ref()
 onMounted(()=>{
   tab.value =1

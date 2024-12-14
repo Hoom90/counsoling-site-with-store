@@ -1,44 +1,56 @@
 <script setup>
-
+definePageMeta({
+  middleware: 'route-check',
+  layout: 'dashboard'
+});
 const route = useRoute()
 const router = useRouter()
-dashboardbreadcrumbstore().setBreadCrumbs([
-  {
-    title: 'صفحه ها ',
-    disabled: true,
-    to: '/dashboard/page/list',
-  }])
-
 const state = reactive({
-  page: {
-    size: route.query?.size ?? 10,
-    index: route.query?.index ?? 1,
-    total: 1,
-    totalPage: 1
+  metadata: {
+    pageIndex: 1,
+    pageSize: 10,
+    totalPages: 1,
+    totalCount: 3,
+    hasPreviousPage: false,
+    hasNextPage: false,
+    parameters: null
   },
   pageList: [],
   dialogDelete: false,
   current: {}
 })
 
+onMounted(()=>{
+  load()
+  dashboardbreadcrumbstore().setBreadCrumbs([
+    {
+      title: 'صفحه ها ',
+      disabled: true,
+      to: '/dashboard/page/list',
+    }])
+})
+
 const load = async () => {
-  await axiosApi().post(apiPath.News.get.list, {
+  const payload = {
     contentType: 3,
-    pageIndex: state.page.index,
-    pageSize: state.page.size,
-  }).then(r => {
+  }
+  if(route.query.index) payload.pageIndex = route.query.index
+  if(route.query.size) payload.pageSize = route.query.size
+  if(route.query.search) payload.searchFilters = [{field:'title',operator:6,value:route.query.search}]
+  await axiosApi().post(apiPath.News.get.list,payload)
+  .then(r => {
     state.pageList = r.data;
-    state.page.total = r.metadata.totalCount
-    state.page.totalPage = r.metadata.totalPages
-  }).catch(e => {
-    common.showError(e?.data?.messages)
-  })
+    state.metadata = r.metadata;
+  }).catch(e => common.showError(e?.data?.messages))
 }
-load()
 
 const changePageing = () => {
-  router.replace({ path: '/dashboard/page/list', query: { size: state.page.size, index: state.page.index } })
-
+  let path = '/dashboard/page/list'
+  let query = null
+  if (state.metadata.pageSize && state.metadata.pageSize != 10) query = { ...query, size: state.metadata.pageSize }
+  if (state.metadata.pageIndex && state.metadata.pageIndex != 1) query = { ...query, index: state.metadata.pageIndex }
+  if (state.searchFilters && state.searchFilters != '') query = { ...query, search: state.searchFilters }
+  router.replace({ path, query })
   setTimeout(() => {
     load()
   }, 50);
@@ -48,28 +60,26 @@ const handleDelete = (row) => {
   state.dialogDelete = true
   state.current = row
 }
+
 const acceptDelete = async (r) => {
-  if(r)
-  await axiosApi().delete(apiPath.News.delete + state.current?.id).then(r => {
-    common.showMessage("صفحه با موفقیت حذف شد")
-    load()
-  }).catch(e => {
-    common.showError(e?.data?.messages)
-  })  
-  .finally(()=>(state.dialogDelete=false))
-  else
+  if(r) {
+    await axiosApi().delete(apiPath.News.delete + state.current?.id)
+    .then(r => {
+      common.showMessage("صفحه با موفقیت حذف شد")
+      load()
+    }).catch(e => common.showError(e?.data?.messages))
+  }
   state.dialogDelete=false
 }
-
 </script>
-
-
-
 <template>
   <v-toolbar class="mb-5" :elevation="1" color="white" rounded>
     <v-toolbar-title>صفحه ها</v-toolbar-title>
     <v-spacer></v-spacer>
-    <v-btn to="/dashboard/page/add" variant="tonal" color="info">ایجاد صفحه جدید</v-btn>
+    <v-btn class="bg-blue-grey-lighten-1" size="large" to="/dashboard/page/add">
+      <v-icon class="ml-2">mdi-plus-circle-multiple</v-icon>
+      ایجاد صفحه جدید
+    </v-btn>
   </v-toolbar>
 
   <v-card>
@@ -77,10 +87,12 @@ const acceptDelete = async (r) => {
       <v-row>
         <v-col cols="12" xs="6" sm="4" md="8"></v-col>
         <v-col cols="12" xs="6" sm="4" md="2">
-          <v-text-field type="search" variant="outlined" density="compact" label="جستجو" hide-details=""></v-text-field>
+          <v-form @submit.prevent="changePageing">
+            <v-text-field v-model="state.searchFilters" @blur="changePageing" @click:append-inner="changePageing" append-inner-icon="mdi-magnify" type="search" variant="outlined" density="compact" label="جستجو" hide-details></v-text-field>
+          </v-form>
         </v-col>
         <v-col cols="12" xs="6" sm="4" md="2">
-          <v-select v-model="state.page.size" :items="constract.pageSize" variant="outlined" density="compact"
+          <v-select v-model="state.metadata.pageSize" :items="contracts.pageSize" variant="outlined" density="compact"
             label="تعداد نمایش" @update:modelValue="changePageing" hide-details></v-select>
         </v-col>
       </v-row>
@@ -92,12 +104,12 @@ const acceptDelete = async (r) => {
           <th>عنوان</th>
           <th>تاریخ ایجاد</th>
           <th>وضعیت</th>
-          <th class="text-center">کنترل</th>
+          <th></th>
         </tr>
       </thead>
       <tbody>
         <tr v-for="(item, index) in state.pageList" :key="item.id">
-          <td>{{ ((state.page.index - 1) * state.page.size + index) + 1 }}</td>
+          <td>{{ ((state.metadata.pageIndex - 1) * state.metadata.pageSize + index) + 1 }}</td>
           <td>{{ item.title }}</td>
           <td>{{ dateConverter.convertToJalali(item.createdOn) }}</td>
           <td>
@@ -106,14 +118,14 @@ const acceptDelete = async (r) => {
           </td>
           <td>
             <div class="float-left">
-              <v-btn variant="tonal" color="info" :to="'/dashboard/page/edit/' + item.id">ویرایش</v-btn>
-              <v-btn variant="tonal" color="warning" class="mx-2" @click="handleDelete(item)">حذف</v-btn>
+              <v-btn variant="text" color="orange" icon="mdi-pen" :to="'/dashboard/page/edit/' + item.id"></v-btn>
+              <v-btn variant="text" color="red" icon="mdi-delete" @click="handleDelete(item)"></v-btn>
             </div>
           </td>
         </tr>
       </tbody>
     </v-table>
-    <v-pagination :length="state.page.totalPage" v-model="state.page.index" class="mx-auto"
+    <v-pagination v-if="state.metadata.totalCount > state.metadata.pageSize" :length="state.metadata.totalPage" v-model="state.page.index" class="mx-auto"
       @update:modelValue="changePageing">
     </v-pagination>
 

@@ -1,5 +1,8 @@
 <script setup>
-import validator from "@/composables/validator";
+definePageMeta({
+  middleware: 'route-check',
+  layout: 'dashboard'
+});
 const verfyTiptap = ref(null)
 const verifyForm = ref(null);
 const route = useRoute()
@@ -38,44 +41,25 @@ onMounted(() => {
     }])
 })
 
-/**
- * create Page
- * @param event
- * @returns {Promise<void>}
- */
 const save = async (event) => {
   state.imageError = false
   const tiptapValid = verfyTiptap.value.validateContent(state.formData.body)
   const { valid } = await verifyForm.value.validate()
-  if (!valid || !tiptapValid) return
+  if(state.formData.imageIds.length == 0) state.imageError = true
+  if (!valid || !tiptapValid || state.imageError) return
 
-  if(state.formData.title.length < 4){
-    common.showError('عنوان حداقل باید 4 کاراکتر داشته باشد')
-    return
+  if (state.formData?.id) {
+    await axiosApi().put(apiPath.Page.update, state.formData)
+      .then(r => common.showMessage('صفحه با موفقیت ویرایش شد'))
+      .catch(e => common.showError(e?.data?.messages))
   }
-
-  if(state.formData.title.length > 4 && !state.imageError){
-    if (state.formData?.id) {
-      await axiosApi().put(apiPath.Page.update, state.formData)
-        .then(r => common.showMessage('صفحه با موفقیت ویرایش شد'))
-        .catch(e => common.showError(e?.data?.messages))
-    }
-    else {
-      await axiosApi().post(apiPath.Page.post, state.formData)
-        .then(r => {
-          common.showMessage('صفحه با موفقیت ذخیره شد')
-          router.push('/dashboard/page/edit/' + r.data)
-        }).catch(e => {
-          common.showError(e?.data?.messages)
-        })
-    }
+  else {
+    await axiosApi().post(apiPath.Page.post, state.formData)
+      .then(r => common.showMessage('صفحه با موفقیت ذخیره شد'))
+      .catch(e => common.showError(e?.data?.messages))
   }
 }
 
-/**
- * edit Page
- * @returns {Promise<void>}
- */
 const load = async () => {
   if (Number(route.params.id))
     await axiosApi().get(apiPath.Page.get.byId + route.params.id)
@@ -91,6 +75,7 @@ const load = async () => {
             disabled: true,
             to: '/dashboard/page/edit/' + state.formData.id,
           }])
+          state.selectedImage = state.formData.imageIds.find(x=>x)
       })
       .catch(e => common.showError(e?.data?.messages))
   state.loadEditor = true

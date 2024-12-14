@@ -42,22 +42,13 @@ const normalizedSize = (size) => {
 
 <template>
  
-    <v-dialog v-model="props.modelValue" transition="dialog-bottom-transition" :persistent="true" :width="width" @update:modelValue="emits('update:modelValue', false)">
+    <v-dialog v-model="props.modelValue" transition="dialog-bottom-transition" :width="width" @update:modelValue="emits('update:modelValue', false)">
         <v-card>
             <v-toolbar dark class="bg-blue-grey-lighten-1">
                 <v-btn icon dark @click="emits('update:modelValue', false)">
                     <v-icon>mdi-close</v-icon>
                 </v-btn>
                 <v-toolbar-title>{{ props.title }}</v-toolbar-title>
-                <v-spacer></v-spacer>
-                <v-toolbar-items>
-                    <!-- <v-btn
-              variant="text"
-              @click="dialog = false"
-            >
-              Save
-            </v-btn> -->
-                </v-toolbar-items>
             </v-toolbar>
             <div class="pa-3">
                 <slot> </slot>

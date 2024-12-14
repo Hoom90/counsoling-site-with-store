@@ -1,18 +1,23 @@
 <script setup>
 import signImage from "@/assets/svg/red-warning-signs.svg"
-definePageMeta({layout: 'dashboard'})
+definePageMeta({
+  middleware: 'route-check',
+  layout: 'dashboard'
+});
 const route = useRoute()
 const router = useRouter()
 const state = reactive({
   dialogDelete: false,
   current: {},
   commentList: [],
-  page:{
-    size: route.query?.size ?? 10,
-    index: route.query?.index ?? 1,
-    parentId: null,
-    sortBy: "-id",
-    totalPage: 1
+  metadata:{
+    pageIndex: 1,
+    pageSize: 10,
+    totalPages: 0,
+    totalCount: 0,
+    hasPreviousPage: false,
+    hasNextPage: true,
+    parameters: null
   },
   readyMessages: [
       "ممنون از شما",
@@ -37,25 +42,24 @@ const state = reactive({
 })
 
 onMounted(()=>{
+  getData()
   dashboardbreadcrumbstore().setBreadCrumbs([
     {
       title: 'دیدگاه ها ',
       disabled: true,
       to: '/dashboard/comment/list',
     }])
-    getData()
 })
 
 const getData = async () => {
-  const payload = {
-    pageIndex: state.page.index,
-    pageSize: state.page.size,
-  }
+  const payload = {}
+  if(route.query.index) payload.pageIndex = route.query.index
+  if(route.query.size) payload.pageSize = route.query.size
+  if(route.query.search) payload.searchFilters = [{field:'message',operator:6,value:route.query.search}]
   await axiosApi().post(apiPath.Comment.get.list,payload)
   .then((res)=>{
     state.commentList = res.data
-    state.page.total = res.metadata.totalCount
-    state.page.totalPage = res.metadata.totalPages
+    state.metadata = res.metadata
   })
   .catch(error=>common.showError(error?.data?.messages))
 }
@@ -91,18 +95,20 @@ const deleteComment = async (res) => {
     await axiosApi().delete(apiPath.Comment.delete + state.current.id, state.formData)
         .then(res => {
           common.showMessage("دیدگاه با موفقیت حذف شد")
-          state.dialogDelete = false
           getData()
         })
         .catch(error=>common.showError(error?.data?.messages))
-  }else{
-    state.dialogDelete = false
   }
+  state.dialogDelete = false
 }
 
 const changePageing = () => {
-  router.replace({ path: '/dashboard/comment/list', query: { size: state.page.size, index: state.page.index } })
-
+  let path = '/dashboard/comment/list'
+  let query = null
+  if (state.metadata.pageSize && state.metadata.pageSize != 10) query = { ...query, size: state.metadata.pageSize }
+  if (state.metadata.pageIndex && state.metadata.pageIndex != 1) query = { ...query, index: state.metadata.pageIndex }
+  if (state.searchFilters && state.searchFilters != '') query = { ...query, search: state.searchFilters }
+  router.replace({ path, query })
   setTimeout(() => {
     getData()
   }, 50);
@@ -118,10 +124,14 @@ const changePageing = () => {
       <v-row>
         <v-col cols="12" xs="6" sm="4" md="8"></v-col>
         <v-col cols="12" xs="6" sm="4" md="2">
-          <v-text-field type="search" variant="outlined" density="compact" label="جستجو" hide-details=""></v-text-field>
+          <v-form @submit.prevent="changePageing">
+            <v-text-field v-model="state.searchFilters" @blur="changePageing" @click:append-inner="changePageing"
+              append-inner-icon="mdi-magnify" type="search" variant="outlined" density="compact" label="جستجوی دیدگاه"
+              hide-details></v-text-field>
+          </v-form>
         </v-col>
         <v-col cols="12" xs="6" sm="4" md="2">
-          <v-select v-model="state.page.size" :items="constract.pageSize" variant="outlined" density="compact"
+          <v-select v-model="state.metadata.pageSize" :items="contracts.pageSize" variant="outlined" density="compact"
             label="تعداد نمایش" @update:modelValue="changePageing" hide-details></v-select>
         </v-col>
       </v-row>
@@ -137,21 +147,24 @@ const changePageing = () => {
       </thead>
       <tbody>
         <tr v-for="(comment, index) in state.commentList" :key="comment.id">
-          <td>{{ ((state.page.index - 1) * state.page.size + index) + 1 }}</td>
+          <td>{{ ((state.metadata.pageIndex - 1) * state.metadata.pageSize + index) + 1 }}</td>
           <td>
             <div>
               <small class="text-grey-lighten-1">
                 <span class="text-grey-lighten-1">ارسال کننده: </span>
-                {{ comment.anonymousUserName }} {{ comment.parentId }}
+                {{ comment.anonymousUserName }}
               </small>
             </div>
             <div>
               <small class="text-grey-lighten-1">
                 <span>مربوط به:</span>
-                <router-link :to="`/${comment.contentType == 1 ? 'news' : 'article'}/${comment.expertId}`"
-                  v-if="comment.contentId">{{ comment.contentTitle }}</router-link>
-                <router-link :to="`/expert/${comment.expertId}`" v-if="comment.expertId">{{ comment.expertName
-                  }}</router-link>
+                <nuxt-link v-if="comment.contentId"
+                  :to="`/${comment.contentType == 1 ? 'news' : 'article'}/${comment.contentId}/${comment.contentTitle.replaceAll(' ','-')}`">
+                  {{ comment.contentTitle }}
+                </nuxt-link>
+                <nuxt-link v-if="comment.expertId" :to="`/expert/${comment.expertId}`">
+                  {{ comment.expertName}}
+                </nuxt-link>
                 <span v-if="!comment.expertId && !comment.contentId"> شما</span>
               </small>
             </div>
@@ -164,11 +177,14 @@ const changePageing = () => {
             <div class="text-no-wrap">{{ dateConverter.someTimeAgo(comment.createdOn) }}</div>
           </td>
           <td class="text-end">
-            <div class="d-flex">
-              <v-btn variant="tonal" color="success" @click="enableComment(comment.id)" :disabled="comment.publishStatus">تایید مدیر سایت</v-btn>
+            <div class="d-flex float-left align-center">
+              <v-btn v-if="!comment.publishStatus" class="bg-orange text-white" @click="enableComment(comment.id)">
+                <v-icon>mdi-alert</v-icon>
+                تایید نشده
+              </v-btn>
               <v-dialog transition="dialog-top-transition" width="auto">
                 <template v-slot:activator="{ props }">
-                  <v-btn v-bind="props" variant="tonal" color="blue" class="mx-2">جواب</v-btn>
+                  <v-btn variant="text" v-bind="props" icon="mdi-reply" color="blue"></v-btn>
                 </template>
                 <template v-slot:default="{ isActive }">
                   <v-card width="400">
@@ -178,8 +194,8 @@ const changePageing = () => {
                     </v-toolbar>
                     <v-card-text class="py-8">
                       <v-form @submit.prevent="replyToComment(comment.id)">
-                        <v-select v-model="state.insertReadyMessage" label="پاسخ های آماده" :items="state.readyMessages"
-                          variant="outlined" return-object single-line></v-select>
+                        <v-select v-if="!state.formData.message" v-model="state.insertReadyMessage" label="پاسخ های آماده" :items="state.readyMessages"
+                          variant="outlined" return-object single-line @update:model-value="state.formReply.message = state.insertReadyMessage"></v-select>
 
                         <v-textarea clearable clear-icon="mdi-close-circle" label="جواب..."
                           v-model="state.formReply.message" rows="2" auto-grow row-height="15"
@@ -193,13 +209,14 @@ const changePageing = () => {
                   </v-card>
                 </template>
               </v-dialog>
-              <v-btn variant="tonal" color="red" @click="dialogDelete(comment)">حذف</v-btn>
+              <v-btn variant="text" icon="mdi-delete" color="red" @click="dialogDelete(comment)"></v-btn>
             </div>
           </td>
         </tr>
       </tbody>
     </v-table>
-    <v-pagination :total-visible="6" :length="state.page.totalPage" v-model="state.page.index" class="mx-auto"
+    <v-pagination v-if="state.metadata.totalCount > state.metadata.pageSize" :total-visible="6"
+      :length="state.metadata.totalPages" v-model="state.metadata.pageIndex" class="mx-auto"
       @update:modelValue="changePageing">
     </v-pagination>
   </v-card>

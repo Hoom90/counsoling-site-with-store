@@ -1,12 +1,35 @@
 <script setup>
 import no_image from '@/assets/img/no-image-icon.png';
-const config = useRuntimeConfig()
-const props = defineProps(['src', 'path', 'class', 'noImage', 'ratio', 'isThumbnail', 'alt', 'style']);
+const config = useRuntimeConfig();
+const props = defineProps({
+  src: String,
+  path: String,
+  class: String,
+  noImage: String,
+  ratio: String,
+  isThumbnail: Boolean,
+  alt: String,
+  style: String,
+});
 const emits = defineEmits(['update:modelValue', 'click']);
 const image = ref(no_image);
 
+ const checkImageExists = async (url) => {
+  try {
+    const response = await fetch(url, { method: 'GET', cache: 'no-store' });
+    return response.ok;
+  } catch {
+    return false;
+  }
+};
+
 const setUrl = async (payload) => {
-  image.value = config.public.baseURL + apiPath.File.url + (props.isThumbnail ? 'thumbnail/' : '') + payload
+  const url = `${config.public.baseURL}${apiPath.File.url}${props.isThumbnail ? 'thumbnail/' : ''}${payload}`;
+  if (await checkImageExists(url)) {
+    image.value = url;
+  } else {
+    image.value = props.noImage || no_image;
+  }
 };
 
 const loadImage = () => {
@@ -14,10 +37,8 @@ const loadImage = () => {
     setUrl(props.src);
   } else if (props.path) {
     image.value = props.path;
-  } else if (props.noImage){
-    image.value = props.noImage
-  } else{
-    image.value = no_image
+  } else {
+    image.value = props.noImage || no_image;
   }
 };
 
@@ -27,7 +48,13 @@ watch(() => props.path, loadImage);
 </script>
 
 <template>
-  <v-img :src="image" :class="props.class" :style="props.style" :alt="props.alt ?? 'دایه'" @click="emits('click')" />
+  <v-img
+    :src="image"
+    :class="props.class"
+    :style="props.style"
+    :alt="props.alt ?? 'دایه'"
+    @click="emits('click')"
+  />
 </template>
 <style>
 img {

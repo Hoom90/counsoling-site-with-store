@@ -1,5 +1,8 @@
 <script setup>
-import validator from "~/composables/validator";
+definePageMeta({
+  middleware: 'route-check',
+  layout: 'dashboard'
+});
 const verfyTiptap = ref(null)
 const verifyForm = ref({});
 const route = useRoute()
@@ -18,6 +21,7 @@ const state = reactive({
     commentStatus: false,
     keywordList: [],
     summary: null,
+    imageIds:[],
   },
   loadEditor:false,
   imageError:false,
@@ -37,45 +41,28 @@ onMounted(() => {
     }])
 })
 
-
-/**
- * create News
- * @param event
- * @returns {Promise<void>}
- */
 const save = async (event) => {
   state.imageError = false
   const tiptapValid = verfyTiptap.value.validateContent(state.formData.body)
   const { valid } = await verifyForm.value.validate()
   if(state.formData.imageIds.length == 0) state.imageError =true
-  if (!valid || !tiptapValid) return
+  if (!valid || !tiptapValid || state.imageError) return
 
-  if(state.formData.title.length < 4){
-    common.showError('عنوان حداقل باید 4 کاراکتر داشته باشد')
-    return
+  if (state.formData?.id) {
+    await axiosApi().put(apiPath.News.update, state.formData)
+      .then(r => common.showMessage('خبر با موفقیت ویرایش شد'))
+      .catch(e => common.showError(e?.data?.messages))
   }
-
-  if(state.formData.title.length > 4 && !state.imageError){
-    if (state.formData?.id) {
-      await axiosApi().put(apiPath.News.update, state.formData)
-        .then(r => common.showMessage('خبر با موفقیت ویرایش شد'))
-        .catch(e => common.showError(e?.data?.messages))
-    }
-    else {
-      await axiosApi().post(apiPath.News.post, state.formData)
-        .then(r => {
-          common.showMessage('خبر با موفقیت ذخیره شد')
-          router.push('/dashboard/news/edit/' + r.data)
-        })
-        .catch(e => common.showError(e?.data?.messages))
-    }
+  else {
+    await axiosApi().post(apiPath.News.post, state.formData)
+      .then(r => {
+        common.showMessage('خبر با موفقیت ذخیره شد')
+        router.push('/dashboard/news/edit/' + r.data)
+      })
+      .catch(e => common.showError(e?.data?.messages))
   }
 }
 
-/**
- * edit News
- * @returns {Promise<void>}
- */
 const load = async () => {
   if (Number(route.params.id))
     await axiosApi().get(apiPath.News.get.byId + route.params.id)
@@ -91,11 +78,29 @@ const load = async () => {
             disabled: true,
             to: '/dashboard/news/edit/' + state.formData.id,
           }])
-        if (state.formData?.imageIds?.length>0) state.imageId = state.formData.imageIds[0]
+        state.selectedImage = state.formData.imageIds.find(x=>x)
       })
       .catch(e => common.showError(e?.data?.messages))
       state.loadEditor=true
 }
+
+const uploadImage = (value) => {
+  const maxLength = 1
+  state.imageError = false
+  if (state.formData.imageIds.length < maxLength) state.formData.imageIds.push(value)
+  state.selectedImage = state.formData.imageIds.find(x=>x)
+}
+
+const deleteUploadedImage = () => {
+  state.formData.imageIds = state.formData.imageIds.filter(image => image.id != state.selectedImage.id);
+  if(state.formData.imageIds.length > 0 && state.selectedImage.isDefault){
+    state.formData.imageIds.find(x => x).isDefault = true
+  }
+  if(state.formData.imageIds.length > 0) state.selectedImage = state.formData.imageIds.find(x=>x)
+  else state.selectedImage = null
+  state.imageError = true
+}
+
 </script>
 <template>
   <v-form @submit.prevent="save" ref="verifyForm">
@@ -103,13 +108,13 @@ const load = async () => {
       <v-col cols="12" md="8" lg="9">
         <v-card>
           <v-card-text>
-            <v-text-field v-model="state.formData.title" variant="outlined" size="x-large" label="عنوان خبر*"
-              :rules="validator.content.title" counter="50" counter-value></v-text-field>
+            <v-text-field v-model="state.formData.title" variant="outlined" label="عنوان خبر*"
+              :rules="validator.content.title"></v-text-field>
 
             <v-textarea v-model="state.formData.summary" variant="outlined" label="چکیده خبر*"
-              placeholder="چند جمله کوتاه درباره خبر..." :rules="validator.content.summery" rows="5"></v-textarea>
+              placeholder="چند جمله کوتاه درباره خبر..." :rules="validator.content.summery" rows="5" no-resize></v-textarea>
 
-            <BaseTiptap v-if="state.loadEditor" ref="verfyTiptap" v-model="state.formData.body" label="متن اصلی خبر*" rules="مقدار وارد شده اشتباه است"/>
+            <BaseTiptap v-if="state.loadEditor" ref="verfyTiptap" v-model="state.formData.body" label="متن اصلی خبر*" rules="وارد کردن محتوای خبری الزامی است"/>
 
             <v-row class="mt-3">
               <v-col cols="12" lg="3" sm="6">
@@ -119,7 +124,6 @@ const load = async () => {
                 <v-checkbox v-model="state.formData.commentShow" label="نمایش خودکار نظرات"></v-checkbox>
               </v-col>
             </v-row>
-
           </v-card-text>
         </v-card>
       </v-col>
@@ -138,7 +142,7 @@ const load = async () => {
         </v-card>
 
         <v-card class="mb-5">
-          <Uploader v-if="state.formData?.imageIds?.length < 1" @update:model-value="uploadImage" :hasImage="false" :multiple="false" :is-private="false"/>
+          <Uploader v-if="state.formData?.imageIds?.length < 1" @update:model-value="uploadImage" :hasImage="false" :multiple="false" :is-private="false" text="بارگزاری عکس خبر"/>
           <BaseImage v-if="state.formData?.imageIds?.length > 0" :src="state.selectedImage" class="mt-1" />
           <v-btn v-if="state.selectedImage" class="bg-red w-100" prepend-icon="mdi-delete-forever" @click="deleteUploadedImage">حذف</v-btn>
           <p v-if="state.imageError" class="px-5 py-1 text-red"><small>بارگزاری عکس الزامی است</small></p>

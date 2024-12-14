@@ -7,6 +7,7 @@ export const userStore = defineStore('user', {
     roles: [],
     profile: {},
     favorite: {},
+    theme:null,
   }),
   getters: {
     getMobile: (state) => state.mobile,
@@ -17,10 +18,13 @@ export const userStore = defineStore('user', {
     getIsInRole: (state, role) => state.roles?.some(x => x == role),
     getUser:(state)=> state.profile,
     getFavorite: (state) => state.favorite,
-    getIsConsultant: (state) => (state.roles?.some(x => x == 'expert'))
-    // getToken:(state)=>state.token
+    getIsConsultant: (state) => (state.roles?.some(x => x == 'expert')),
+    getTheme: (state) => state.theme,
   },
   actions: {
+    setTheme(theme) { 
+      this.theme = theme
+    },
     setMobile(mobile) {
       this.mobile = mobile
     },

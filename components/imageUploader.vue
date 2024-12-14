@@ -71,5 +71,3 @@ const uploadButtonText = (text) => {
     </label>
   </div>
 </template>
-
-<style></style>

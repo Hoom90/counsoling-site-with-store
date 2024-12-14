@@ -1,5 +1,8 @@
 <script setup>
-
+definePageMeta({
+  middleware: 'route-check',
+  layout: 'dashboard'
+});
 const state = reactive({
   table: {
     size: 10,
@@ -99,7 +102,7 @@ const close = () => {
           <v-text-field type="search" variant="outlined" density="compact" label="جستجو" hide-details=""></v-text-field>
         </v-col>
         <v-col cols="12" xs="6" sm="4" md="2">
-          <v-select v-model="state.table.size" :items="constract.pageSize" variant="outlined" density="compact"
+          <v-select v-model="state.table.size" :items="contracts.pageSize" variant="outlined" density="compact"
             label="تعداد نمایش" @update:modelValue="changePageing" hide-details></v-select>
         </v-col>
       </v-row>

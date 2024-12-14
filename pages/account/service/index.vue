@@ -1,4 +1,5 @@
 <script setup>
+definePageMeta({ layout: 'account', middleware: 'route-check', })
 const router = useRouter();
 const state= reactive({
   pagination: {
@@ -11,8 +12,8 @@ const state= reactive({
 })
 
 //#region GET
-onMounted(async()=>{
-  await getData()
+onMounted(()=>{
+  getData()
 });
 
 const getData = async () => {
@@ -21,9 +22,7 @@ const getData = async () => {
     state.records = res.data
     state.pagination = res.metadata
   })
-  .catch((error)=>{
-    common.showError(error?.data?.messages)
-  })
+  .catch((error)=>common.showError(error?.data?.messages))
 }
 
 const changePageing = () => {
@@ -38,8 +37,9 @@ const changePageing = () => {
 </script>
 
 <template>
-  <fieldset class="myFieldset rounded-xl mb-5">
-    <h3>خدمات ارائه شده</h3>
+  <fieldset class="myFieldset rounded-xl mb-5 d-flex align-center ga-5">
+    <v-btn icon="mdi-chevron-right" class="bg-teal d-md-none" to="/account/home"></v-btn>
+    <p class="text-18"><strong>خدمات ارائه شده</strong></p>
   </fieldset>
 
   <fieldset class="myFieldset rounded-xl">

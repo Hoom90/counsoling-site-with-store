@@ -5,6 +5,7 @@ export default defineNuxtConfig({
     //'/dashboard/**': { ssr: false },
     '/account/**': { ssr: false },
     '/dashboard/**': { ssr: false },
+    '/dashboard/': { redirect: '/dashboard/user/list' },
     '/category': { redirect: '/' },
     '/expert': { redirect: '/' },
   },
@@ -38,7 +39,6 @@ export default defineNuxtConfig({
     { src: '~/plugins/swal', mode: 'client' },
     { src: '~/plugins/direction-control', mode: 'client' },
     { src: '~/plugins/datePicker.js', mode: 'client' },
-    { src: '~/plugins/localStorage.js', mode: 'client' },
   ],
   modules: [
 

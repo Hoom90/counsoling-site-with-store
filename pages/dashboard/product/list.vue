@@ -1,18 +1,14 @@
 <script setup>
+definePageMeta({
+  middleware: 'route-check',
+  layout: 'dashboard'
+});
 const router = useRouter()
 const route = useRoute()
-dashboardbreadcrumbstore().setBreadCrumbs([
-  {
-    title: 'محصولات',
-    disabled: true,
-    to: '/dashboard/product/list',
-  }]
-)
-
 const state = reactive({
   metadata: {
-    pageIndex: route.query?.index ?? 1,
-    pageSize: route.query?.size ?? 10,
+    pageIndex: 1,
+    pageSize: 10,
     totalPages: 0,
     totalCount: 0,
     hasPreviousPage: true,
@@ -21,29 +17,42 @@ const state = reactive({
   },
   newsList: [],
   dialogDelete: false,
-  current: {}
+  current: {},
+  searchFilters:null,
 })
 
 onMounted(()=>{
   getAllProducts()
+  dashboardbreadcrumbstore().setBreadCrumbs([
+    {
+      title: 'محصولات',
+      disabled: true,
+      to: '/dashboard/product/list',
+    }]
+  )
 })
 
 const getAllProducts = async () => {
-  await axiosApi().post(apiPath.Product.getAll, {
-    contentType: 1,
-    pageIndex: state.metadata.pageIndex,
-    pageSize: state.metadata.pageSize,
-  }).then(r => {
+  const payload = {}
+  if(route.query.index) payload.pageIndex = route.query.index
+  if(route.query.size) payload.pageSize = route.query.size
+  if(route.query.search) payload.searchFilters = [{field:'title',operator:6,value:route.query.search}]
+  await axiosApi().post(apiPath.Product.getAll, payload)
+  .then(r => {
     state.newsList = r.data;
     state.metadata = r.metadata
-  }).catch(e => {
-    common.showError(e?.data?.messages)
   })
+  .catch(e => common.showError(e?.data?.messages))
 }
 
 const changePageing = () => {
-  router.replace({ path: '/dashboard/product/list', query: { size: state.metadata.pageSize, index: state.metadata.pageIndex } })
+  let path = '/dashboard/product/list'
+  let query = null
+  if (state.metadata.pageSize && state.metadata.pageSize != 10) query = { ...query, size: state.metadata.pageSize }
+  if (state.metadata.pageIndex && state.metadata.pageIndex != 1) query = { ...query, index: state.metadata.pageIndex }
+  if (state.searchFilters && state.searchFilters != '') query = { ...query, search: state.searchFilters }
 
+  router.replace({ path, query })
   setTimeout(() => {
     getAllProducts()
   }, 50);
@@ -53,18 +62,16 @@ const handleDelete = (row) => {
   state.dialogDelete = true
   state.current = row
 }
+
 const acceptDelete = async (r) => {
   if (r) {
     await axiosApi().delete(apiPath.Product.delete(state.current.id))
       .then(r => {
         common.showMessage("کالا با موفقیت حذف شد")
-        state.dialogDelete = false
         getAllProducts()
       }).catch(e => common.showError(e?.data?.messages))
   }
-  else {
-    state.dialogDelete = false
-  }
+  state.dialogDelete = false
 }
 </script>
 <template v-if="state.newsList && state.newsList.length > 0">
@@ -79,10 +86,12 @@ const acceptDelete = async (r) => {
       <v-row>
         <v-col cols="12" xs="6" sm="4" md="8"></v-col>
         <v-col cols="12" xs="6" sm="4" md="2">
-          <v-text-field type="search" variant="outlined" density="compact" label="جستجو" hide-details=""></v-text-field>
+          <v-form @submit.prevent="changePageing">
+            <v-text-field v-model="state.searchFilters" @blur="changePageing" @click:append-inner="changePageing" append-inner-icon="mdi-magnify" type="search" variant="outlined" density="compact" label="جستجو" hide-details=""></v-text-field>
+          </v-form>
         </v-col>
         <v-col cols="12" xs="6" sm="4" md="2">
-          <v-select v-model="state.metadata.size" :items="constract.pageSize" variant="outlined" density="compact"
+          <v-select v-model="state.metadata.pageSize" :items="contracts.pageSize" variant="outlined" density="compact"
             label="تعداد نمایش" @update:modelValue="changePageing" hide-details></v-select>
         </v-col>
       </v-row>
@@ -101,8 +110,8 @@ const acceptDelete = async (r) => {
           <td>{{ item.title }}</td>
           <td class="text-center">
             <div class="float-left">
-              <v-btn variant="tonal" color="info" class="mx-2" :to="'/dashboard/product/edit/' + item.id" >ویرایش</v-btn>
-              <v-btn variant="tonal" color="warning" @click="handleDelete(item)">حذف</v-btn>
+              <v-btn variant="text" color="orange" icon="mdi-pen" :to="'/dashboard/product/edit/' + item.id" ></v-btn>
+              <v-btn variant="text" color="red" icon="mdi-delete" @click="handleDelete(item)"></v-btn>
             </div>
           </td>
         </tr>
@@ -113,7 +122,6 @@ const acceptDelete = async (r) => {
         :length="state.metadata.totalPages" v-model="state.metadata.pageIndex" class="mx-auto"
       @update:modelValue="changePageing">
     </v-pagination>
-
   </v-card>
 
 

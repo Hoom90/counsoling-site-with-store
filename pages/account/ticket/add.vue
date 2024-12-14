@@ -1,4 +1,5 @@
 <script setup>
+definePageMeta({ layout: 'account', middleware: 'route-check', })
 const router =useRouter()
 const verifyForm = ref({})
 const state = reactive({
@@ -61,7 +62,7 @@ const validator = {
       <v-row class="justify-center align-center">
         <v-col cols="12" md="7" lg="6">
           <v-text-field v-model="state.ticket.title" :rules="validator.title" variant="outlined" label="عنوان" maxlength = "50" counter></v-text-field>
-          <v-select v-model="state.ticket.department" :rules="validator.department" variant="outlined" label="ارسال به" :items="constract.ticketRecievers" item-value="id" item-title="title"></v-select>
+          <v-select v-model="state.ticket.department" :rules="validator.department" variant="outlined" label="ارسال به" :items="contracts.ticketRecievers" item-value="id" item-title="title"></v-select>
           <v-textarea v-model="state.ticket.description" :rules="validator.description" label="متن تیکت" maxlength = "200" variant="outlined" counter></v-textarea>
           <v-btn block variant="tonal" type="submit" color="blue">ارسال</v-btn>
         </v-col>

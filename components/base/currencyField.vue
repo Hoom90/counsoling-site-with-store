@@ -7,6 +7,7 @@ const state = reactive({
 
 onMounted(()=>{
     state.currencyValue = props.modelValue
+    formatCurrency(state.currencyValue)
 })
 
 const formatCurrency = () => {

@@ -30,7 +30,3 @@ const state = reactive({
     </v-card>
   </v-dialog>
 </template>
-
-<style scoped>
-
-</style>

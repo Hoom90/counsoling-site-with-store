@@ -1,4 +1,5 @@
 <script setup>
+definePageMeta({ layout: 'account', middleware: 'route-check', })
 const verifyForm = ref({})
 const route = useRoute()
 const state = reactive({
@@ -53,7 +54,7 @@ const postTicket = async (r) =>{
 }
 
 const handleStateColor = (state) => {
-  let ticketState = constract.ticketState
+  let ticketState = contracts.ticketState
   let color = null
   ticketState.forEach(item => {
     if (state == item.id) {
@@ -145,6 +146,3 @@ const validator = {
     </v-form>
   </mj-dialog>
 </template>
-
-
-<style></style>

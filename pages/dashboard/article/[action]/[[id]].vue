@@ -1,8 +1,12 @@
 <script setup>
-import validator from "~/composables/validator";
+definePageMeta({
+  middleware: 'route-check',
+  layout: 'dashboard'
+});
 const verfyTiptap = ref(null)
 const verifyForm = ref(null);
 const route = useRoute()
+const router = useRouter()
 const state = reactive({
   articleData: [],
   categoryList: [],
@@ -37,44 +41,28 @@ onMounted(() => {
     }])
 })
 
-/**
- * create article
- * @param event
- * @returns {Promise<void>}
- */
 const save = async (event) => {
   state.imageError = false
   const tiptapValid = verfyTiptap.value.validateContent(state.formData.body)
   const { valid } = await verifyForm.value.validate()
   if(state.formData.imageIds.length == 0) state.imageError =true
-  if (!valid || !tiptapValid) return
-  
-  if(state.formData.title.length < 4){
-    common.showError('عنوان حداقل باید 4 کاراکتر داشته باشد')
-    return
-  }
+  if (!valid || !tiptapValid || state.imageError) return
 
-  if(state.formData.title.length > 4 && !state.imageError){
-    if (state.formData?.id) {
-      await axiosApi().put(apiPath.Article.update, state.formData)
-        .then(common.showMessage('مقاله با موفقیت ویرایش شد'))
-        .catch(e => common.showError(e?.data?.messages))
-    }
-    else {
-      await axiosApi().post(apiPath.Article.post, state.formData)
-        .then(r => {
-          common.showMessage('مقاله با موفقیت ذخیره شد')
-          router.push('/dashboard/article/edit/' + r.data)
-        })
-        .catch(e => common.showError(e?.data?.messages))
-    }
+  if (state.formData?.id) {
+    await axiosApi().put(apiPath.Article.update, state.formData)
+      .then(common.showMessage('مقاله با موفقیت ویرایش شد'))
+      .catch(e => common.showError(e?.data?.messages))
+  }
+  else {
+    await axiosApi().post(apiPath.Article.post, state.formData)
+      .then(r => {
+        common.showMessage('مقاله با موفقیت ذخیره شد')
+        router.push('/dashboard/article/edit/' + r.data)
+      })
+      .catch(e => common.showError(e?.data?.messages))
   }
 }
 
-/**
- * edit article
- * @returns {Promise<void>}
- */
 const load = async () => {
   if (Number(route.params.id))
     await axiosApi().get(apiPath.Article.get.byId + route.params.id)
@@ -90,7 +78,7 @@ const load = async () => {
             disabled: true,
             to: '/dashboard/article/edit/' + state.formData.id,
           }])
-        if (state.formData?.imageIds?.length > 0) state.imageId = state.formData.imageIds[0]
+        state.selectedImage = state.formData.imageIds.find(x=>x)
       })
       .catch(e => common.showError(e?.data?.messages))
       state.loadEditor = true

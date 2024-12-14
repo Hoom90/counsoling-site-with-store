@@ -1,22 +1,23 @@
 export default {
   //#region User
   user: {
-    firstName: [
-      (value) => {
-        if (value) return true;
-        return "مقدار وارد شده اشتباه است.";
-      },
-    ],
-    lastName: [
+    firstName: (label) => [
       (v) => {
         if (v) return true;
-        return "مقدار وارد شده اشتباه است";
+        return `وارد کردن ${label ?? "نام"} الزامی است.`;
       },
     ],
-    phoneNumber: [
+    lastName: (label) => [
       (v) => {
         if (v) return true;
-        return "مقدار وارد شده اشتباه است";
+        return `وارد کردن ${label ?? "نام خانوادگی"} الزامی است`;
+      },
+    ],
+    phoneNumber: (label) => [
+      (v) => {
+        if (v && v.length < 10) return `${label ?? "شماره همراه"} وارد شده معتبر نمیباشد`;
+        if (v) return true;
+        return `وارد کردن ${label ?? "شماره همراه"} الزامی است`;
       },
     ],
   },
@@ -44,20 +45,21 @@ export default {
     ],
     nationalCode: [
       (v) => {
+        if (v && v.length < 10) return "کد ملی وارد شده معتبر نمیباشد";
         if (v) return true;
-        return "مقدار وارد شده اشتباه است";
+        return "وارد کردن کد ملی الزامی است";
       },
     ],
     medicalNumber: [
       (v) => {
-        if (v && v > 0) return true;
-        return "مقدار وارد شده اشتباه است";
+        if (v) return true;
+        return "وارد کردن کد نظام پزشکی الزامی است";
       },
     ],
-    counselingAmount: [
+    counselingAmount: (label) => [
       (v) => {
-        if (v && v > 0) return true;
-        return "مقدار وارد شده اشتباه است";
+        if (v) return true;
+        return `وارد کردن ${label??'قیمت کارشناسی'} الزامی است`;
       },
     ],
     categories: [
@@ -132,14 +134,18 @@ export default {
   content: {
     title: [
       (v) => {
+        if(v && v.length < 4) return "عنوان محتوا باید حداقل 4 کاراکتر باشد";
+        if(v && v.length > 50) return "عنوان محتوا میتواند حداکثر 50 کاراکتر باشد";
         if (v) return true;
-        return "مقدار وارد شده اشتباه است.";
+        return "وارد کردن عنوان محتوا الزامی است";
       },
     ],
     summery: [
       (v) => {
+        if(v && v.length < 10) return "چکیده باید حداقل 10 کاراکتر باشد";
+        if(v && v.length > 200) return "چکیده میتواند حداکثر 200 کاراکتر باشد";
         if (v) return true;
-        return "مقدار وارد شده اشتباه است";
+        return "وارد کردن چکیده الزامی است";
       },
     ],
     description: [
@@ -239,7 +245,7 @@ export default {
   //#endregion
 
   //#region Result
-  result:{
+  result: {
     title: [
       (value) => {
         if (value) return true;
@@ -253,14 +259,26 @@ export default {
   auth: {
     mobileNumber: [
       (value) => {
-        if (value =="admin" || /^0?9[0-9]{9}$/.test(value)) return true;
+        if (value == "admin" || /^0?9[0-9]{9}$/.test(value)) return true;
         return "شماره وارد شده اشتباه است.";
       },
     ],
-    password: [
-      (value) => {
-        if (value) return true;
-        return "رمز وارد شده اشتباه است.";
+    oldPassword: [
+      (v) => {
+        if (v) return true;
+        return "وارد کردن رمز قبلی الزامی است.";
+      },
+    ],
+    newPassword: [
+      (v) => {
+        if (v) return true;
+        return "وارد کردن رمز جدید الزامی است.";
+      },
+    ],
+    repeatNewPassword: [
+      (v) => {
+        if (v) return true;
+        return "وارد کردن تکرار رمز جدید الزامی است.";
       },
     ],
   },

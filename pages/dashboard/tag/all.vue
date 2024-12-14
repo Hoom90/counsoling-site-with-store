@@ -1,7 +1,8 @@
 <script setup>
 definePageMeta({
-  layout: 'dashboard',
-})
+  middleware: 'route-check',
+  layout: 'dashboard'
+});
 </script>
 
 <template>

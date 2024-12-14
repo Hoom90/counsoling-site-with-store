@@ -129,7 +129,7 @@ fetchApi.post(apiPath.public.Expert.category, { body: { categoryId: route.params
               <v-card class="rounded-xl" min-height="320">
                 <v-card-item class="pa-3 position-relative">
                   <BaseImage v-if="item.imageId" :src="item.imageId" class="rounded-xl"
-                    is-thumbnail="true" ratio="1"></BaseImage>
+                    :is-thumbnail="true" ratio="1"/>
                   <div class="rating">
                     <v-icon class="text-white mx-2">mdi-thumb-up-outline</v-icon>
                     <v-icon class="text-white mx-2 mt-3">mdi-thumb-down-outline</v-icon>

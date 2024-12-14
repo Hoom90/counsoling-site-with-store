@@ -1,4 +1,5 @@
 <script setup>
+definePageMeta({ layout: 'account', middleware: 'route-check', })
 const state= reactive({
   textnumber: 0,
   records: [
@@ -50,7 +51,3 @@ const state= reactive({
     </v-row>
   </fieldset>
 </template>
-
-<style scoped>
-
-</style>

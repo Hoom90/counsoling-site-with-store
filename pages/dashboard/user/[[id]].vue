@@ -1,6 +1,8 @@
 <script setup>
-import avatar from "@/assets/img/avatar.png"
-import validator from "~/composables/validator";
+definePageMeta({
+  middleware: 'route-check',
+  layout: 'dashboard'
+});
 const router = useRouter()
 const route = useRoute()
 const verifyForm = ref({});
@@ -11,129 +13,64 @@ const state = reactive({
     expert: {},
     province: [],
     categories: [],
-    userImage: avatar,
-    uploadImage: false,
-    uploadButtonText: 'انتخاب تصویر'
 })
 
-if (route.params.id) {
-    state.pageTitle = "ویرایش"
-}
-
-dashboardbreadcrumbstore().setBreadCrumbs([
-    {
-        title: 'کاربران ',
-        disabled: false,
-        to: '/dashboard/user/list',
-    },
-    {
-        title: `${state.pageTitle} کاربر`,
-        disabled: true,
-    }])
-
-//#region GET
-const getData = async () => {
-    let id = route.params.id == '' ? null : route.params.id
-    if (id) {
-        getUsers()
+onMounted(() => {
+    dashboardbreadcrumbstore().setBreadCrumbs([
+        {
+            title: 'کاربران ',
+            disabled: false,
+            to: '/dashboard/user/list',
+        },
+        {
+            title: `${state.pageTitle} کاربر`,
+            disabled: true,
+        }])
+    if (route.params.id) {
+        state.pageTitle = "ویرایش"
     }
+    if (route.params.id) getUsers()
     getCategory()
     getProvinces()
-}
+})
+
 
 const getUsers = async () => {
     await axiosApi().get(apiPath.Users.get.single + route.params.id)
-        .then((res) => {
-            state.user = res.data
-            // if (state.user?.imageId) {
-            //     state.userImage = state.user.imageId
-            // }
-        })
-        .catch((error) => {
-            common.showError(error?.data?.messages)
-        })
+        .then((res) => state.user = res.data)
+        .catch((error) => common.showError(error?.data?.messages))
 }
 
 const getCategory = async () => {
     await axiosApi().get(apiPath.Category.get.all)
-        .then((res) => {
-            state.categories = res.data
-        })
-        .catch((error) => {
-            common.showError(error?.data?.messages)
-        })
+        .then((res) => state.categories = res.data)
+        .catch((error) => common.showError(error?.data?.messages))
 }
 
 const getProvinces = async () => {
     await axiosApi().get(apiPath.Province.get.cities)
-        .then((res) => {
-            state.province = res.data
-        })
-        .catch((error) => {
-            common.showError(error?.data?.messages)
-        })
+        .then((res) => state.province = res.data)
+        .catch((error) => common.showError(error?.data?.messages))
 }
-getData()
-//#endregion
 
-//#region POST
-const postUser = async () => {
+const addUser = async () => {
     await axiosApi().post(apiPath.Users.post, state.user)
         .then((res) => {
-            if (res.failed) {
-                common.showError(res.messages)
-            }
             common.showMessage("کاربر ایجاد شد")
             router.replace(`/dashboard/user/${res.data}`)
-        }).catch(e => {
-            common.showError(e?.data?.messages)
-        })
+        }).catch(e => common.showError(e?.data?.messages))
 }
-//#endregion
 
-//#region PUT
-const putUser = async () => {
+const updateUser = async () => {
     await axiosApi().put(apiPath.Users.update, state.user)
-        .then((res) => {
-            if (res.failed) {
-                common.showError(res.messages)
-                return
-            }
-            common.showMessage("کاربر ویرایش شد")
-            // router.push('/dashboard/user/list') 
-        }).catch(e => {
-            common.showError(e?.data?.messages)
-        })
+        .then((res) => common.showMessage("کاربر ویرایش شد"))
+        .catch(e => common.showError(e?.data?.messages))
 }
-//#endregion
 
 const save = async () => {
     const { valid } = await verifyForm.value.validate()
-    if (!valid) {
-        common.showError('موارد ضروری را وارد کنید')
-        return
-    }
-
-    if (route.params.id) {
-        putUser()
-    }
-    else {
-        postUser()
-    }
+    if (valid) route.params.id ? updateUser() : addUser()
 }
-
-const uploadImage = (value) => {
-  state.imageError = false
-  state.selectedImage = value
-  state.user.imageId = value
-}
-
-const deleteUploadedImage = () => {
-  state.user.imageId = null
-  state.selectedImage = null
-  state.imageError = true
-}
-
 </script>
 <template>
     <v-form @submit.prevent="save" ref="verifyForm" id="mainForm">
@@ -146,19 +83,20 @@ const deleteUploadedImage = () => {
                         <v-row>
                             <v-col cols="12" sm="6">
                                 <v-text-field label="نام*" variant="outlined" v-model="state.user.firstName"
-                                    :rules="validator.user.firstName"></v-text-field>
+                                    :rules="validator.user.firstName()"></v-text-field>
                             </v-col>
                             <v-col cols="12" sm="6">
                                 <v-text-field label="نام خانوادگی*" variant="outlined" v-model="state.user.lastName"
-                                    :rules="validator.user.lastName"></v-text-field>
+                                    :rules="validator.user.lastName()"></v-text-field>
                             </v-col>
 
                             <v-col cols="12" sm="6">
                                 <v-text-field label="شماره موبایل*" variant="outlined" v-model="state.user.phoneNumber"
-                                    :rules="validator.user.phoneNumber"></v-text-field>
+                                    :rules="validator.user.phoneNumber('شماره موبایل')"></v-text-field>
                             </v-col>
                             <v-col cols="12" sm="6">
-                                <v-text-field label="آدرس" variant="outlined" v-model="state.user.address"></v-text-field>
+                                <v-text-field label="آدرس" variant="outlined"
+                                    v-model="state.user.address"></v-text-field>
                             </v-col>
                             <v-col cols="12">
                                 <v-textarea rows="2" label="توضیحات" variant="outlined"
@@ -177,19 +115,12 @@ const deleteUploadedImage = () => {
 
                 </v-card>
             </v-col>
-            <!-- بارگزاری عکس -->
             <v-col cols="12" md="4" lg="3">
                 <v-card class="pa-3 mb-5">
                     <div class="align-items-center text-center">
-                        <BaseImage :src="state.selectedImage" class="mb-1" />
-                        <Uploader v-if="!state.selectedImage" @update:model-value="uploadImage" :hasImage="false" :multiple="false" :is-private="false"/>
-                        <v-btn v-if="state.selectedImage" class="bg-red w-100" prepend-icon="mdi-delete-forever" @click="deleteUploadedImage">حذف</v-btn>
-                        <!-- <imageUploader v-model="state.user.imageId" customeClass="mx-auto"></imageUploader> -->
+                        <Uploader v-model="state.user.imageId" />
                         <hr class="my-4" />
-
-                        <v-btn type="submit" variant="tonal" class="bg-blue-grey-lighten-1" block
-                            :disabled="state.uploadImage">{{
-                                state.uploadImage ? 'لطفا صبر کنید...' : 'ذخیره اطلاعات' }} </v-btn>
+                        <v-btn type="submit" variant="tonal" class="bg-blue-grey-lighten-1" block>ذخیره اطلاعات</v-btn>
                     </div>
                 </v-card>
             </v-col>

@@ -3,21 +3,13 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 import { Swiper, SwiperSlide } from 'swiper/vue';
 import { Navigation } from 'swiper/modules';
-const state = reactive({
-  data:[],
-  components: {
-    Swiper,
-    SwiperSlide,
-  },
-})
 const modules = [Navigation]
-
+const app = appStore()
 const data = await fetchApi.get(`${apiPath.public.News.get.query}?ContentType=1`)
   .then((res) => {
+    app.setloading(false)
     return res.data.value;
-  }).catch(error => {
-    common.showError(error?.data?.messages)
-  })
+  }).catch(error => common.showError(error?.data?.messages))
 </script>
 <template>
   <v-container>
@@ -28,7 +20,6 @@ const data = await fetchApi.get(`${apiPath.public.News.get.query}?ContentType=1`
             <div class="STitle">
               <img src="@/assets/img/star-divider-line.png" width="40" />
               <h3>جدیدترین خبر ها</h3>
-              <!-- <img src="@/assets/img/divider-line01.png" width="300" /> -->
             </div>
           </v-col>
           <v-col cols="6">
@@ -68,9 +59,10 @@ const data = await fetchApi.get(`${apiPath.public.News.get.query}?ContentType=1`
 
           <swiper-slide v-for="item in data" :key="item.id">
             <nuxtLink :to="`news/${item.id}/${item.title.replaceAll(' ','-')}`">
-              <v-card class="d-flex flex-column justify-space-between rounded-xl" min-height="345" hover>
+              <v-card class="d-flex flex-column justify-space-between rounded-xl" hover>
                 <v-card-text class="pa-0">
-                  <BaseImage :src="item.image" is-thumbnail="true" :alt="item.title"></BaseImage>
+                  <!-- <BaseImage :src="item.image" :is-thumbnail="true" :alt="item.title" style="aspect-ratio: 1;"/> -->
+                  <BaseImage :src="item.image" :is-thumbnail="true" :alt="item.title"/>
                   <p class="height-42 text-wrap pa-3">
                     <strong>{{ item.title }}</strong>
                   </p>

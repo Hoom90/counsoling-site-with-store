@@ -242,8 +242,8 @@ const selectedReserve = (reserve) => {
 
   let startTime = regExTime.exec(reserve.startTime);
   let endTime = regExTime.exec(reserve.endTime);
-  let from = parseInt(((parseInt(startTime[1]) * 60) + parseInt(startTime[2])))
-  let to = parseInt(((parseInt(endTime[1]) * 60) + parseInt(endTime[2])))
+  const from = parseInt(((parseInt(startTime[1]) * 60) + parseInt(startTime[2])))
+  const to = parseInt(((parseInt(endTime[1]) * 60) + parseInt(endTime[2])))
 
   state.selectReserve.duration = to - from
 }
@@ -254,7 +254,7 @@ const selectedReserve = (reserve) => {
     <v-row>
       <v-col cols="12" md="3">
         <v-card class="pa-5 rounded-xl">
-          <BaseImage :src="state.data?.imageId" class="mx-auto mb-2 rounded-lg" :alt="`${state.data.firstName} ${state.data.lastName}`"></BaseImage>
+          <BaseImage :src="state.data?.imageId" class="mx-auto mb-2 rounded-lg" :alt="`${state.data.firstName} ${state.data.lastName}`"/>
         </v-card>
       </v-col>
       <v-col cols="12" md="9">
@@ -290,7 +290,7 @@ const selectedReserve = (reserve) => {
                   </v-list-item>
                   <v-list-item prepend-icon="mdi-arrow-left-circle">
                     <strong>مدرک: </strong>
-                    <span>{{ constract.grade?.find(item => item.id == state.data?.grade)?.title
+                    <span>{{ contracts.grade?.find(item => item.id == state.data?.grade)?.title
                     }}</span>
                   </v-list-item>
                   <div class="d-flex align-center" style="flex-wrap: wrap;">
@@ -350,7 +350,8 @@ const selectedReserve = (reserve) => {
                 </v-btn>
               </v-col>
               <v-col class="text-center">
-                <v-btn color="blue" class="border-none" :style="state.isScore ? '' : 'cursor: default;'"
+                <!-- <v-btn color="blue" class="border-none" :style="state.isScore ? '' : 'cursor: default;'" -->
+                <v-btn color="blue" class="border-none"
                   @click="handleClickScore">
                   <v-icon class="ml-3">mdi-star-outline</v-icon>
                   <small>{{ state.data?.score }}</small>

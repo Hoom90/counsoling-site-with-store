@@ -1,4 +1,5 @@
 <script setup>
+definePageMeta({ layout: 'account', middleware: 'route-check', })
 const router = useRouter()
 const route = useRoute();
 const state= reactive({
@@ -13,7 +14,7 @@ const state= reactive({
 
 //#region GET
 onMounted(async()=>{
-  await getData()
+  getData()
 })
 
 const getData = async()=>{
@@ -28,9 +29,7 @@ const getData = async()=>{
     state.records = res.data
     state.pagination = res.metadata
   })
-  .catch((error)=>{
-    common.showError(error?.data?.messages)
-  })
+  .catch((error)=>common.showError(error?.data?.messages))
 }
 
 const changePageing = () => {
@@ -42,14 +41,15 @@ const changePageing = () => {
 }
 //#endregion
 
-const handleStateColor = (state) => constract.ticketState.find(x=>x.id==state)?.color
+const handleStateColor = (state) => contracts.ticketState.find(x=>x.id==state)?.color
 
 </script>
 
 <template>
-  <fieldset class="myFieldset rounded-xl d-flex align-center mb-5">
-    <h3>لیست تیکت ها</h3>
-    <div class="mr-auto">
+  <fieldset class="myFieldset rounded-xl d-flex align-center ga-5 mb-5">
+    <v-btn icon="mdi-chevron-right" class="bg-teal d-md-none" to="/account/home"></v-btn>
+    <p class="text-18"><strong>لیست تیکت ها</strong></p>
+    <div class="mr-auto d-none d-md-block">
       <v-btn variant="tonal" class="rounded-pill" color="info" to="/account/ticket/add">ارسال تیکت جدید</v-btn>
     </div>
   </fieldset>
@@ -84,7 +84,3 @@ const handleStateColor = (state) => constract.ticketState.find(x=>x.id==state)?.
     </v-pagination>
   </fieldset>
 </template>
-
-<style scoped>
-
-</style>

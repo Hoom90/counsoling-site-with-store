@@ -1,14 +1,8 @@
 <script setup>
-import validator from "@/composables/validator";
-
-dashboardbreadcrumbstore().setBreadCrumbs([
-  {
-    title: 'اسلایدر ',
-    disabled: true,
-    to: '/dashboard/slider',
-  }])
-
-
+definePageMeta({
+  middleware: 'route-check',
+  layout: 'dashboard'
+});
 const verifyForm = ref({});
 const slidePic = ref()
 const state = reactive({
@@ -19,7 +13,6 @@ const state = reactive({
   formTitle: null,
   sliders: [],
   editState: false,
-
   slides: [],
   slide: {},
   imageId: null,
@@ -27,74 +20,56 @@ const state = reactive({
   isEdit: false
 })
 
-//#region Slider
-//#region GET
+onMounted(()=>{
+  getData()
+  dashboardbreadcrumbstore().setBreadCrumbs([
+    {
+      title: 'اسلایدر ',
+      disabled: true,
+      to: '/dashboard/slider',
+    }])
+})
+
 const getData = async () => {
   axiosApi().get(apiPath.Slider.get.all)
-    .then((res) => {
-      state.sliders = res.data
-    })
-    .catch((error) => {
-      common.showError(error?.data?.messages)
-    })
+    .then((res) => state.sliders = res.data)
+    .catch((error) => common.showError(error?.data?.messages))
 }
-getData()
-//#endregion
 
 const saveSlider = async (s) => {
   if (s){
     const { valid } = await verifyForm.value.validate()
-    if (!valid) {
-      common.showError('موارد ضروری را وارد کنید')
-      return
-    }
+    if (!valid) return
   
     if(state.slider.title.length < 4){
       common.showError('عنوان حداقل باید 4 کاراکتر داشته باشد')
       return
     }
-      if (state.editState)
-        putSlider()
-      else
-        postNewSlider()
+    state.editState ? putSlider() : postNewSlider()
   }
-  else
-    state.editDialog = false
+  state.editDialog = false
 }
 
-//#region POST
 const postNewSlider = async () => {
   await axiosApi().post(apiPath.Slider.post, state.slider)
     .then(res => {
       common.showMessage(res.messages)
       getData()
     })
-    .catch(error => {
-      common.showError(error?.data?.messages)
-    })
-    .finally(() => {
-      close()
-    })
+    .catch(error => common.showError(error?.data?.messages))
+    closeDialog()
 }
-//#endregion
 
-//#region PUT
 const putSlider = async () => {
   await axiosApi().put(apiPath.Slider.update, state.slider)
     .then(res => {
       common.showMessage(res.messages)
       getData()
     })
-    .catch(error => {
-      common.showError(error?.data?.messages)
-    })
-    .finally(() => {
-      close()
-    })
+    .catch(error => common.showError(error?.data?.messages))
+    closeDialog()
 }
-//#endregion
 
-//#region DELETE
 const deleteSlider = async (r) => {
   if (r) {
     await axiosApi().delete(apiPath.Slider.delete + state.slider.id)
@@ -103,20 +78,13 @@ const deleteSlider = async (r) => {
         getData()
         selectSlider([state.sliderId])
       })
-      .catch(error => {
-        common.showError(error?.data?.messages)
-      })
-      .finally(() => {
-        close()
-      })
+      .catch(error => common.showError(error?.data?.messages))
+      closeDialog()
   }
-  else
-    state.deleteDialog = false
+  state.deleteDialog = false
 }
-//#endregion
 
-//#region MODAL
-const close = () => {
+const closeDialog = () => {
   state.slider = {}
   state.editDialog = false;
   state.deleteDialog = false
@@ -134,14 +102,12 @@ const handleSelect = (item) => {
 
 const handleDelete = (item) => {
   state.deleteDialog = true
-  if (item)
+  if (item){
     state.slider = { ...item }
+    state.slides = []
+  }
 }
-//#endregion
-//#endregion
 
-//#region Slide
-//#region GET All
 const selectSlider = (id) => {
   state.sliderId = id[0]
   if (state.sliderId)
@@ -155,23 +121,16 @@ const selectSlider = (id) => {
       .finally(() => {
       })
 }
-//#endregion
 
-//#region POST
 const postSlide = async () => {
   const { valid } = await verifyForm.value.validate()
-
-  // if(state.slide.title?.length < 4){
-  //   common.showError('عنوان حداقل باید 4 کاراکتر داشته باشد')
-  //   return
-  // }
 
   if(!state.imageId){
     slidePic.value.style.color = 'red';
     return
   }
 
-  if(!valid){ return}
+  if(!valid) return
 
 
   slidePic.value.style.color = '';
@@ -185,30 +144,17 @@ const postSlide = async () => {
       common.showMessage(res.messages)
       selectSlider([state.sliderId])
     })
-    .catch(error => {
-      common.showError(error?.data?.messages)
-    })
-    .finally(() => {
-
-    })
+    .catch(error => common.showError(error?.data?.messages))
 }
-//#endregion
 
-//#region PUT
 const putSilde = async () => {
   const { valid } = await verifyForm.value.validate()
-
-  // if(state.slide.title.length < 4){
-  //   common.showError('عنوان حداقل باید 4 کاراکتر داشته باشد')
-  //   return
-  // }
-
   if(!state.imageId){
     slidePic.value.style.color = 'red';
     return
   }
 
-  if(!valid){ return}
+  if(!valid) return
 
   slidePic.value.style.color = '';
 
@@ -221,16 +167,9 @@ const putSilde = async () => {
       common.showMessage(res.messages)
       selectSlider([state.sliderId])
     })
-    .catch(error => {
-      common.showError(error?.data?.messages)
-    })
-    .finally(() => {
-
-    })
+    .catch(error => common.showError(error?.data?.messages))
 }
-//#endregion
 
-//#region MODAL
 const selectSlide = (item) => {
   if (state.sliderId) {
     state.editDialogSlide = true
@@ -246,16 +185,10 @@ const selectSlide = (item) => {
     }
   }
 }
-//#endregion
 
-const saveSlide = async (s) => {
+const saveSlide = (s) => {
   if (s) {
-    if (state.isEdit) {
-      await putSilde()
-    }
-    else {
-      await postSlide()
-    }
+    state.isEdit ? putSilde() : postSlide()
   }
   else {
     state.editDialogSlide = false
@@ -264,7 +197,6 @@ const saveSlide = async (s) => {
     state.slide = {}
   }
 }
-//#endregion
 
 </script>
 <template>
@@ -284,11 +216,8 @@ const saveSlide = async (s) => {
             <v-list-item-title> {{ slider.title }} </v-list-item-title>
             <template v-slot:append>
               <v-list-item-action start>
-                <v-btn variant="plain" class="px-1" @click="handleSelect(slider)">
-                  <v-icon icon>mdi-pen</v-icon></v-btn>
-                <v-btn variant="plain" class="px-1" @click="handleDelete(slider)">
-                  <v-icon icon>mdi-delete</v-icon>
-                </v-btn>
+                <v-btn variant="text" color="orange" icon="mdi-pen" @click="handleSelect(slider)"></v-btn>
+                <v-btn variant="text" color="red" icon="mdi-delete" @click="handleDelete(slider)"></v-btn>
               </v-list-item-action>
             </template>
           </v-list-item>
@@ -297,7 +226,7 @@ const saveSlide = async (s) => {
     </v-col>
     <v-col cols="12" md="8">
       <v-card>
-        <v-card-title class="d-flex">
+        <v-card-title class="d-flex align-center">
           اسلاید
           <v-btn @click="selectSlide()" class="bg-blue-grey-lighten-1 ms-auto" size="large" :disabled="state.sliderId == 0 ? true : false">
             <v-icon class="ml-2">mdi-plus-circle-multiple</v-icon>
@@ -312,17 +241,12 @@ const saveSlide = async (s) => {
           <v-row>
             <v-col cols="6" md="4" lg="3" v-for="item in state.slides" :key="item.id">
               <v-card>
-                <BaseImage :src="item.imageId" min-height="125" style="cursor: pointer;" @click="selectSlide(item)">
-                </BaseImage>
+                <BaseImage :src="item.imageId" min-height="125" style="cursor: pointer;" @click="selectSlide(item)"/>
                 <v-card-text>
                   <span>{{ item.title }}</span>
-                  <div class="d-flex mx-auto">
-                    <v-btn @click="handleDelete(item)" color="red" variant="text" class="float-left">
-                      <v-icon>mdi-delete-outline</v-icon>
-                    </v-btn>
-                    <v-btn @click="selectSlide(item)" color="green" variant="text" class="float-left">
-                      <v-icon>mdi-pencil-outline</v-icon>
-                    </v-btn>
+                  <div class="d-flex justify-end">
+                    <v-btn @click="selectSlide(item)" color="orange" variant="text" icon="mdi-pencil"></v-btn>
+                    <v-btn @click="handleDelete(item)" color="red" variant="text" icon="mdi-delete"></v-btn>
                   </div>
                 </v-card-text>
               </v-card>
@@ -352,8 +276,8 @@ const saveSlide = async (s) => {
         </v-col>
       </v-row>
       <p ref="slidePic">عکس اسلاید*</p>
-      <div class=" text-center ma-4 ">
-        <imageUploader v-model="state.imageId" customeClass="mx-auto w-50"></imageUploader>
+      <div class="d-flex justify-center">
+        <imageUploader v-model="state.imageId" style="width: 300px;"/>
       </div>
     </v-form>
   </mj-dialog>

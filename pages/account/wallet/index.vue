@@ -1,4 +1,5 @@
 <script setup>
+definePageMeta({ layout: 'account', middleware: 'route-check', })
 const router = useRouter()
 const route = useRoute()
 const state = reactive({
@@ -21,23 +22,15 @@ const state = reactive({
 })
 
 //#region GET
-onMounted(async () => {
-  await getData()
+onMounted(() => {
+  getBalance()
+  getRecord()
 })
-
-const getData = async () => {
-  await getBalance()
-  await getRecord()
-}
 
 const getBalance = async () => {
   await axiosApi().get(apiPath.User.Wallet.balance)
-    .then((res) => {
-      state.balance = res.data
-    })
-    .catch((error) => {
-      common.showError(error?.data?.messages)
-    })
+    .then((res) => state.balance = res.data)
+    .catch((error) => common.showError(error?.data?.messages))
 }
 
 const getRecord = async () => {
@@ -52,9 +45,7 @@ const getRecord = async () => {
       state.records = res.data
       state.pagination = res.metadata
     })
-    .catch((error) => {
-      common.showError(error?.data?.messages)
-    })
+    .catch((error) => common.showError(error?.data?.messages))
 }
 
 const changePageing = () => {
@@ -78,9 +69,7 @@ const postData = async () => {
       state.portData = res.data
       state.todayDate = new Date().toISOString().slice(0, 10)
     })
-    .catch((error) => {
-      common.showError(error?.data?.messages)
-    })
+    .catch((error) => common.showError(error?.data?.messages))
 }
 //#endregion
 
@@ -96,23 +85,38 @@ const openPayPort = (r) => {
 
 <template>
   <!-- head -->
-  <fieldset class="myFieldset rounded-xl mb-5 d-flex justify-space-between align-center pr-10">
-    <legend>شارژ کیف</legend>
-    <div>
+  <fieldset class="myFieldset rounded-xl mb-5 d-md-none">
+    <div class="d-flex align-center ga-5">
+      <v-btn icon="mdi-chevron-right" class="bg-teal d-md-none" to="/account/home"></v-btn>
+      <p class="text-18"><strong>سوابق کیف پول</strong></p>
+    </div>
+    <div class="text-center">
       <span>موجودی کیف پول: </span>
       <span>{{ state.balance.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") }} تومان</span>
     </div>
-    <div class="mb-3">
-      <v-form @submit.prevent="postData">
-        <div class="d-flex align-center ga-1">
-          <v-btn color="theme-blue" type="submit" variant="outlined" height="40" min-width="40" class="d-flex align-center pa-0">
-            <v-icon>mdi-cash-plus</v-icon>
-          </v-btn>
-          <BaseNumberSeprator style="min-width: 200px;" v-model="state.textnumber" dir="ltr" hide-details density="compact" />
-        </div>
-      </v-form>
-    </div>
   </fieldset>
+
+  <template class="d-none d-md-block">
+    <fieldset class="myFieldset rounded-xl mb-5 d-flex justify-space-between align-center pr-10">
+      <legend>شارژ کیف</legend>
+      <div>
+        <span>موجودی کیف پول: </span>
+        <span>{{ state.balance.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") }} تومان</span>
+      </div>
+      <div class="mb-3">
+        <v-form @submit.prevent="postData">
+          <div class="d-flex align-center ga-1">
+            <v-btn color="theme-blue" type="submit" variant="outlined" height="40" min-width="40"
+              class="d-flex align-center pa-0">
+              <v-icon>mdi-cash-plus</v-icon>
+            </v-btn>
+            <BaseNumberSeprator style="min-width: 200px;" v-model="state.textnumber" dir="ltr" hide-details
+              density="compact" />
+          </div>
+        </v-form>
+      </div>
+    </fieldset>
+  </template>
 
   <!-- records -->
   <fieldset class="myFieldset rounded-xl mb-5">
@@ -160,4 +164,36 @@ const openPayPort = (r) => {
       </v-col>
     </v-row>
   </mj-dialog>
+
+  <v-dialog max-width="500">
+    <template v-slot:activator="{ props: activatorProps }">
+      <v-btn v-bind="activatorProps" color="red" icon="mdi-plus" variant="flat"
+        style="position: fixed;bottom: 50px;right: 40px;"></v-btn>
+    </template>
+
+    <template v-slot:default="{ isActive }">
+      <v-card>
+        <v-card-title class="d-flex align-center bg-teal">
+          <v-btn icon="mdi-close" variant="text" @click="isActive.value = false"></v-btn>
+          <p>شارژ کیف پول</p>
+        </v-card-title>
+        <v-card-text>
+          <div class="mb-5 text-center">
+            <span><small>موجودی کیف پول: </small></span>
+            <span>
+              <strong>{{ state.balance.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") }}</strong>
+              <small>تومان</small>
+            </span>
+          </div>
+          <div class="mb-3">
+            <v-form @submit.prevent="postData">
+              <BaseNumberSeprator v-model="state.textnumber" dir="ltr" />
+              <v-btn class="bg-red w-50" size="large" @click="isActive.value = false">انصراف</v-btn>
+              <v-btn type="submit" class="bg-blue w-50" size="large">پرداخت</v-btn>
+            </v-form>
+          </div>
+        </v-card-text>
+      </v-card>
+    </template>
+  </v-dialog>
 </template>

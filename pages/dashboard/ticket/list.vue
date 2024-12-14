@@ -1,92 +1,81 @@
 <script setup>
+definePageMeta({
+  middleware: 'route-check',
+  layout: 'dashboard'
+});
 const router = useRouter()
 const route = useRoute()
-dashboardbreadcrumbstore().setBreadCrumbs([
-  {
-    title: 'تیکت ها ',
-    disabled: true,
-    to: '/dashboard/ticket',
-  }])
-
 const state = reactive({
-  pagination: {
-    pageIndex: 0,
-    pageSize:0,
-    totalPages:0,
-    totalCount: 0,
+  metadata: {
+    pageIndex: 1,
+    pageSize: 10,
+    totalPages: 6,
+    totalCount: 60,
+    hasPreviousPage: false,
+    hasNextPage: true,
+    parameters: null
   },
   ticketList: [],
 })
 
-//#region GET
-onMounted(async () => {
-  await getData()
+onMounted(() => {
+  getData()
+  dashboardbreadcrumbstore().setBreadCrumbs([
+    {
+      title: 'تیکت ها ',
+      disabled: true,
+      to: '/dashboard/ticket',
+    }])
 })
 
 const getData = async () => {
-  if(route.query){
-    state.pagination = {
-      pageIndex: route.query?.index,
-      pageSize: route.query?.size
-    }
-  }
-  await axiosApi().post(apiPath.Ticket.post.pagination,state.pagination)
+  const payload = {}
+  if (route.query.index) payload.pageIndex = route.query.index 
+  if (route.query.size) payload.pageSize = route.query.size 
+  if (route.query.search) payload.searchFilters = [{field:'title',operator:6,value:route.query.search}] 
+  await axiosApi().post(apiPath.Ticket.post.pagination,payload)
     .then((res) => {
       state.ticketList = res.data
-      state.pagination = res.metadata
+      state.metadata = res.metadata
     })
-    .catch((error) => {
-      common.showError(error?.data?.messages)
-    })
+    .catch((error) => common.showError(error?.data?.messages))
 }
 
 const changePageing = () => {
-  router.replace({ path: '/dashboard/ticket/list', query: { size: state.pagination.pageSize, index: state.pagination.pageIndex }})
-
+  let path = '/dashboard/ticket/list'
+  let query = null
+  if (state.metadata.pageSize && state.metadata.pageSize != 10) query = { ...query, size: state.metadata.pageSize }
+  if (state.metadata.pageIndex && state.metadata.pageIndex != 1) query = { ...query, index: state.metadata.pageIndex }
+  if (state.searchFilters && state.searchFilters != '') query = { ...query, search: state.searchFilters }
+  router.replace({ path, query })
   setTimeout(() => {
     getData()
   }, 50);
 }
 
-//#endregion
-
 const handleStateColor = (state) => {
-  let ticketState =constract.ticketState
-  let color =null 
-  ticketState.forEach(item=>{
-    if(state == item.id){
-      color = item.color
-    }
-  });
-  return color
-}
+  const ticketState = contracts.ticketState;
+  const item = ticketState.find(item => item.id === state);
+  return item ? item.color : null;
+};
 
 const handleDepartmentTitle = (departmentId) => {
-  let department = constract.ticketRecievers
-  let departmentTitle = null
-  department.forEach(item => {
-    if (departmentId == item.id) {
-      departmentTitle = item.title
-    }
-  })
-  return departmentTitle
-}
+  const department = contracts.ticketRecievers;
+  const item = department.find(item => item.id === departmentId);
+  return item ? item.title : null;
+};
 
-const handleDelete = async (item) =>{
+const handleDelete = async (item) => {
   await axiosApi().delete(apiPath.Ticket.delete(item.id))
-  .then((res)=>{
-    common.showMessage(res.messages)
-    let index = state.ticketList.indexOf(t => t.id == item.id)
-    state.ticketList.splice(index,1)
-  })
-  .catch((error) => {
-    common.showError(error?.data?.messages)
-  })
+    .then((res) => {
+      common.showMessage(res.messages)
+      getData()
+    })
+    .catch((error) => common.showError(error?.data?.messages))
 }
-
 </script>
 <template>
-  <v-toolbar class="mb-5" :elevation="1" color="white" rounded>
+  <v-toolbar class="mb-5" elevation="1" color="white" rounded>
     <v-toolbar-title>تیکت ها</v-toolbar-title>
     <v-spacer></v-spacer>
   </v-toolbar>
@@ -95,10 +84,14 @@ const handleDelete = async (item) =>{
       <v-row>
         <v-col cols="12" xs="6" sm="4" md="8"></v-col>
         <v-col cols="12" xs="6" sm="4" md="2">
-          <v-text-field type="search" variant="outlined" density="compact" label="جستجو" hide-details=""></v-text-field>
+          <v-form @submit.prevent="changePageing">
+            <v-text-field v-model="state.searchFilters" @blur="changePageing" @click:append-inner="changePageing"
+              append-inner-icon="mdi-magnify" type="search" variant="outlined" density="compact" label="جستجو"
+              hide-details=""></v-text-field>
+          </v-form>
         </v-col>
         <v-col cols="12" xs="6" sm="4" md="2">
-          <v-select v-model="state.pagination.pageSize" :items="constract.pageSize" variant="outlined" density="compact"
+          <v-select v-model="state.metadata.pageSize" :items="contracts.pageSize" variant="outlined" density="compact"
             label="تعداد نمایش" @update:modelValue="changePageing" hide-details></v-select>
         </v-col>
       </v-row>
@@ -115,25 +108,28 @@ const handleDelete = async (item) =>{
         </tr>
       </thead>
       <tbody>
-      <tr v-for="(item, index) in state.ticketList" :key="index">
-        <td>{{ ((state.pagination.pageIndex - 1) * state.pagination.pageSize + index) + 1 }}</td>
-        <td>{{ item.title }}</td>
-        <td>{{ handleDepartmentTitle(item.department) }}</td>
-        <td>{{ dateConverter.someTimeAgo(item.createdOn) }}</td>
-        <td>
-          <v-chip :color="handleStateColor(item.state)">{{ item.stateTitle }}</v-chip>
-        </td>
-        <td>
-          <div class="float-left">
-            <v-btn variant="tonal" color="info" class="mx-2" :to="`/dashboard/ticket/${item.id}`">بررسی</v-btn>
-            <v-btn variant="tonal" color="warning" @click="handleDelete(item)">حذف</v-btn>
-          </div>
-        </td>
-      </tr>
+        <tr v-for="(item, index) in state.ticketList" :key="index">
+          <td>{{ ((state.metadata.pageIndex - 1) * state.metadata.pageSize + index) + 1 }}</td>
+          <td>{{ item.title }}</td>
+          <td>{{ handleDepartmentTitle(item.department) }}</td>
+          <td>{{ dateConverter.someTimeAgo(item.createdOn) }}</td>
+          <td>
+            <v-chip :color="handleStateColor(item.state)">{{ item.stateTitle }}</v-chip>
+          </td>
+          <td>
+            <div class="float-left">
+              <v-btn class="bg-info" :to="`/dashboard/ticket/${item.id}`">
+                <v-icon>mdi-eye</v-icon>
+                بررسی
+              </v-btn>
+              <v-btn variant="text" color="red" icon="mdi-delete" @click="handleDelete(item)"></v-btn>
+            </div>
+          </td>
+        </tr>
       </tbody>
     </v-table>
-    <v-pagination total-visible="6" :length="state.pagination.totalPages" v-model="state.pagination.pageIndex" class="mx-auto"
-      @update:modelValue="changePageing">
+    <v-pagination total-visible="6" :length="state.metadata.totalPages" v-model="state.metadata.pageIndex"
+      class="mx-auto" @update:modelValue="changePageing">
     </v-pagination>
   </v-card>
 
@@ -142,4 +138,3 @@ const handleDelete = async (item) =>{
     <p>مقاله {{ state.current.title }} حذف می شود.<br />آیا اطمینان دارید؟</p>
   </mj-dialog> -->
 </template>
-

@@ -13,11 +13,8 @@ const state = reactive({
 const modules = [Navigation]
 
 const data = await fetchApi.get(`${apiPath.public.Article.get.query}?ContentType=2`)
-  .then((res) => {
-    return res.data.value;
-  }).catch(error => {
-    common.showError(error?.data?.messages)
-  })
+  .then((res) => res.data.value)
+  .catch(error => common.showError(error?.data?.messages))
 </script>
 <template>
   <v-container>
@@ -67,9 +64,10 @@ const data = await fetchApi.get(`${apiPath.public.Article.get.query}?ContentType
 
           <swiper-slide v-for="item in data" :key="item.id">
             <nuxtLink :to="`article/${item.id}/${item.title.replaceAll(' ','-')}`">
-              <v-card class="d-flex flex-column justify-space-between rounded-xl" min-height="345" hover>
+              <v-card class="d-flex flex-column justify-space-between rounded-xl" hover>
                 <v-card-text class="pa-0">
-                  <BaseImage :src="item.image" is-thumbnail="true" :alt="item.title"></BaseImage>
+                  <!-- <BaseImage :src="item.image" :is-thumbnail="true" :alt="item.title" style="aspect-ratio: 1;"/> -->
+                  <BaseImage :src="item.image" :is-thumbnail="true" :alt="item.title"/>
                   <p class="height-42 text-wrap pa-3">
                     <strong>{{ item.title }}</strong>
                   </p>

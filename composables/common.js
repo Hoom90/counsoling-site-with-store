@@ -39,8 +39,8 @@ export default
         },
 
         updateQueryStringParameter(uri, key, value) {
-            let re = new RegExp("([?&])" + key + "=.*?(&|$)", "i");
-            let separator = uri.indexOf('?') !== -1 ? "&" : "?";
+            const re = new RegExp("([?&])" + key + "=.*?(&|$)", "i");
+            const separator = uri.indexOf('?') !== -1 ? "&" : "?";
             if (uri.match(re)) {
                 return uri.replace(re, '$1' + key + "=" + value + '$2');
             }

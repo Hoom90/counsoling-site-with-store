@@ -1,6 +1,9 @@
 <script setup>
-import validator from "~/composables/validator";
-const verifyForm = ref({});
+definePageMeta({
+  middleware: 'route-check',
+  layout: 'dashboard'
+});
+const verifyForm = ref();
 const route = useRoute()
 const state = reactive({
   tags: [],
@@ -8,7 +11,7 @@ const state = reactive({
     title: null,
     description: null,
     count: '1',
-    price: '1000',
+    price: '1,000',
     isActive: true,
     specialSale: false,
     imageList: [],
@@ -22,7 +25,6 @@ const state = reactive({
 })
 
 onMounted(() => {
-  formatCurrency()
   getFeatures()
   load()
   dashboardbreadcrumbstore().setBreadCrumbs([
@@ -37,12 +39,6 @@ onMounted(() => {
     }])
 })
 
-
-/**
- * create News
- * @param event
- * @returns {Promise<void>}
- */
 const save = async () => {
   const { valid } = await verifyForm.value.validate()
   if (valid && state.formData.imageList.length != 0) {
@@ -65,10 +61,6 @@ const save = async () => {
   }
 }
 
-/**
- * edit News
- * @returns {Promise<void>}
- */
 const load = async () => {
   if (Number(route.params.id))
     await axiosApi().get(apiPath.Product.getById(route.params.id))
@@ -208,8 +200,8 @@ const setCategoryId = () =>{
 
             <BaseCategorySelect v-model="state.formData.categoryId" label="دسته بندی*" :rules="validator.content.categoryId" class="mt-1" @update:model-value="setCategoryId" :multiple="false"/>
 
-            <v-text-field v-model="state.formData.price" label="قیمت*" variant="outlined" size="x-large" prefix="تومان "
-              @input="formatCurrency" :rules="validator.content.price" class="mt-1"></v-text-field>
+
+            <BaseCurrencyField  v-model="state.formData.price" label="قیمت*" variant="outlined" size="x-large" prefix="تومان " :rules="validator.content.price" class="mt-1"/>
 
             <v-text-field v-model="state.formData.count" label="تعداد*" variant="outlined" size="x-large" prefix="عدد "
               @input="formatCount" :rules="validator.content.count"></v-text-field>
@@ -221,11 +213,11 @@ const setCategoryId = () =>{
             <v-row no-gutters class="ga-3" v-for="(item, index) in state.formData.tagList" :key="index">
               <v-col>
                 <v-combobox v-model="item.title" class="mt-5" variant="outlined" size="x-large" label="عنوان ویژگی*" :items="state.tags"
-                  :rules="validator.content.title" @update:model-value="setFeatureTitle($event,item)" @blur="setNewFeatureTitle($event,item)"/>
+                  :rules="validator.content.feature" @update:model-value="setFeatureTitle($event,item)" @blur="setNewFeatureTitle($event,item)"/>
               </v-col>
               <v-col>
                 <v-text-field v-model="item.value" class="mt-5" variant="outlined" size="x-large" label="مقدار ویژگی*"
-                  :rules="validator.content.title" append-icon="mdi-close text-red"
+                  :rules="validator.content.feature" append-icon="mdi-close text-red"
                   @click:append="removeFeature(item)"></v-text-field>
               </v-col>
             </v-row>

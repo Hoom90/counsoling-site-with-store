@@ -1,4 +1,5 @@
 <script setup>
+const app = appStore()
 const state = reactive({
   data:[],
   payload: { pageSize: 10 },
@@ -7,9 +8,8 @@ const state = reactive({
  fetchApi.post(apiPath.public.Expert.get.paged, { body: state.payload })
   .then((res) => {
     state.data = res.data.value.data;
-  }).catch(error => {
-    common.showError(error?.messages)
-  })
+    app.setloading(false)
+  }).catch(error => common.showError(error?.messages))
 
 </script>
 <template>
@@ -37,23 +37,29 @@ const state = reactive({
       </v-card-title>
       <v-card-text class="pt-5 pb-9 d-flex justify-center ga-5">
         <v-row class="justify-center">
-          <v-col cols="12" md="3" v-for="(item,index) in state.data" :key="index">
-            <v-card class="rounded-xl d-flex justify-center align-center h-100 mx-auto" height="200" hover :to="`expert/${item.id}/${item.firstName.replaceAll(' ','-')}-${item.lastName.replaceAll(' ','-')}`">
-              <v-card-text class="h-100 d-flex justify-space-between flex-column">
-                <p><strong>{{ item.firstName + ' ' + item.lastName }}</strong></p>
-                <v-card flat>
-                  <p>
-                    <v-icon size="20">mdi-star-outline</v-icon>
-                    <small><strong>{{ item.score }}</strong></small>
-                  </p>
-                  <p>
-                    <v-icon size="20">mdi-account-outline</v-icon>
-                    <small><strong>{{ item.visitedCount }}</strong> ویزیت شده</small>
-                  </p>
-                </v-card>
-              </v-card-text>
-              <BaseImage v-if="item.imageId" :src="item.imageId" is-thumbnail="true" 
-                class="w-50 indexExpertImage" :alt="item.title"></BaseImage>
+          <v-col cols="6" md="3" v-for="(item,index) in state.data" :key="index">
+            <v-card class="rounded-xl h-100 mx-auto" hover :to="`expert/${item.id}/${item.firstName.replaceAll(' ','-')}-${item.lastName.replaceAll(' ','-')}`">
+              <v-row no-gutters class="flex-row-reverse">
+                <v-col cols="12" sm="6">
+                  <BaseImage v-if="item.imageId" :src="item.imageId" :is-thumbnail="true" 
+                    class="indexExpertImage" :alt="item.title"/>
+                </v-col>
+                <v-col cols="12" sm="6">
+                  <v-card-text class="h-100 d-flex justify-space-between flex-column">
+                    <p><strong>{{ item.firstName + ' ' + item.lastName }}</strong></p>
+                    <v-card flat>
+                      <p>
+                        <v-icon size="20">mdi-star-outline</v-icon>
+                        <small><strong>{{ item.score }}</strong></small>
+                      </p>
+                      <p>
+                        <v-icon size="20">mdi-account-outline</v-icon>
+                        <small><strong>{{ item.visitedCount }}</strong> ویزیت شده</small>
+                      </p>
+                    </v-card>
+                  </v-card-text>
+                </v-col>
+              </v-row>
             </v-card>
           </v-col>
         </v-row>

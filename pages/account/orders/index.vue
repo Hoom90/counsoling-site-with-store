@@ -1,4 +1,5 @@
 <script setup>
+definePageMeta({ layout: 'account', middleware: 'route-check', })
 const router = useRouter();
 const route = useRoute();
 let regExTime = /([0-9]?[0-9]):([0-9][0-9])/;
@@ -24,8 +25,8 @@ const state = reactive({
 })
 
 //#region GET
-onMounted(async () => {
-  await getData()
+onMounted(() => {
+  getData()
 });
 
 const getData = async () => {
@@ -40,9 +41,7 @@ const getData = async () => {
       state.records = res.data
       state.pagination = res.metadata
     })
-    .catch((error) => {
-      common.showError(error?.data?.messages)
-    })
+    .catch((error) => common.showError(error?.data?.messages))
 }
 
 const changePageing = () => {
@@ -63,9 +62,7 @@ const deleteData = async (s) => {
         common.showMessage('با موفقیت حذف شد')
         state.deleteOrder = false
       })
-      .catch((error) => {
-        common.showError(error?.data?.messages)
-      })
+      .catch((error) => common.showError(error?.data?.messages))
   }
   else
     state.deleteOrder = false
@@ -80,9 +77,7 @@ const postPayment = async (item) => {
       state.zarinPardakhtData = res.data
       state.todayDate = new Date().toISOString().slice(0, 10)
     })
-    .catch((error) => {
-      common.showError(error?.data?.messages)
-    })
+    .catch((error) => common.showError(error?.data?.messages))
 }
 
 const handleResult = (id) => {
@@ -90,21 +85,15 @@ const handleResult = (id) => {
 }
 
 const openPayPort = (r) => {
-  if (r) {
-    window.location.href = state.zarinPardakhtData.url
-  }
+  if (r) window.location.href = state.zarinPardakhtData.url
   state.paymentModal = false
 }
 
 const showDetails = (item) => {
   state.showDetails = true
   axiosApi().get('/user/order/' + item.id)
-    .then((res) => {
-      state.currentOrder = res.data
-    })
-    .catch((error) => {
-      common.showError(error?.data?.messages)
-    })
+    .then((res) => state.currentOrder = res.data)
+    .catch((error) => common.showError(error?.data?.messages))
 }
 
 const handelDeleteOrder = (item) => {
@@ -116,8 +105,9 @@ const handelDeleteOrder = (item) => {
 </script>
 
 <template>
-  <fieldset class="myFieldset rounded-xl mb-5">
-    <h3>سفارشات</h3>
+  <fieldset class="myFieldset rounded-xl mb-5 d-flex align-center ga-5">
+    <v-btn icon="mdi-chevron-right" class="bg-teal d-md-none" to="/account/home"></v-btn>
+    <p class="text-18"><strong>سفارشات</strong></p>
   </fieldset>
 
   <fieldset class="myFieldset rounded-xl">

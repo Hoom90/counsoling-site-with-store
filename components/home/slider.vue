@@ -5,36 +5,18 @@ import 'swiper/css/effect-fade';
 import 'swiper/css/pagination';
 import 'swiper/css/navigation';
 import { EffectFade, Autoplay, Keyboard, Pagination, Navigation } from 'swiper/modules';
-
+const app = appStore()
 const state = reactive({
   modules: [EffectFade, Autoplay, Keyboard, Pagination, Navigation],
   data: [],
 })
 
-// onMounted(async ()=>{
-//   await getData()
-// })
-
-// const getData = async() =>{
-//   await axiosApi().get(apiPath.public.Slider.get.byParent(1))
-//   .then((res)=>{
-//     if(res.failed){
-//       common.showError(res.messages)
-//     }
-//     state.data = res.data
-//   })
-//   .catch((error)=>{
-//     common.showError(error?.data?.messages)
-//   })
-// }
-
 fetchApi.get(apiPath.public.Slider.get.byParent(1))
-.then((res)=>{
+  .then((res)=>{
+    app.setloading(false)
     state.data = res.data.value.data
   })
-  .catch((error)=>{
-    common.showError(error?.data?.messages)
-  })
+  .catch((error)=>common.showError(error?.data?.messages))
 
 </script>
 <template>

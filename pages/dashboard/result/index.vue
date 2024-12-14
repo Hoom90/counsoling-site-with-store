@@ -1,5 +1,8 @@
 <script setup>
-import validator from "@/composables/validator"
+definePageMeta({
+  middleware: 'route-check',
+  layout: 'dashboard'
+});
 const verifyForm = ref({});
 const state = reactive({
   categoryList : [],
@@ -17,33 +20,22 @@ const state = reactive({
   oldState: null,
 })
 
-//#region GET
-onMounted(async ()=>{
-  await getCategory()
+onMounted(()=>{
+  getCategory()
 })
 
 const getCategory = async () =>{
   await axiosApi().get(apiPath.Category.get.all)
-  .then((res)=>{
-    state.categoryList = res.data;
-  })
-  .catch((error)=>{
-    common.showError(error?.data?.messages)
-  })
+  .then((res)=>state.categoryList = res.data)
+  .catch((error)=>common.showError(error?.data?.messages))
 }
 
 const getResult = async () =>{
   await axiosApi().get(apiPath.Result.get.byCategoryId(state.selectedCategory))
-  .then((res)=>{
-    state.tableData = res.data
-  })
-  .catch((error)=>{
-    common.showError(error?.data?.messages)
-  })
+  .then((res)=>state.tableData = res.data)
+  .catch((error)=>common.showError(error?.data?.messages))
 }
-//#endregion
 
-//#region POST
 const postData = async (r) =>{
   if(r){
     const { valid } = await verifyForm.value.validate()
@@ -55,16 +47,12 @@ const postData = async (r) =>{
       state.newResult.id = res.data
       state.tableData.push(state.newResult)
     })
-    .catch((error)=>{
-      common.showError(error?.data?.messages)
-    })
+    .catch((error)=>common.showError(error?.data?.messages))
   }
   state.addModal = !state.addModal
   resetNewResult()
 }
-//#endregion
 
-//#region DELETE
 const deleteData = async (r) =>{
   if(r){
     await axiosApi().delete(apiPath.Result.delete(state.newResult.id))
@@ -73,16 +61,12 @@ const deleteData = async (r) =>{
       const index = state.tableData.indexOf(state.newResult);
       state.tableData.splice(index, 1);
     })
-    .catch((error)=>{
-      common.showError(error?.data?.messages)
-    })
+    .catch((error)=>common.showError(error?.data?.messages))
   }
   state.deleteModal = !state.deleteModal
   resetNewResult()
 }
-//#endregion
 
-//#region PUT
 const putData = async (r) =>{
   if(r){
     const { valid } = await verifyForm.value.validate()
@@ -94,14 +78,11 @@ const putData = async (r) =>{
       state.tableData.splice(index, 1)
       state.tableData.push(state.newResult)
     })
-    .catch((error)=>{
-      common.showError(error?.data?.messages)
-    })
+    .catch((error)=>common.showError(error?.data?.messages))
   }
   state.editModal = !state.editModal
   resetNewResult()
 }
-//#endregion
 
 const resetNewResult = () =>{
   state.newResult= {
@@ -112,7 +93,6 @@ const resetNewResult = () =>{
   }
 }
 
-//#region MODAL
 const handlePost = () =>{
   resetNewResult()
   state.addModal = !state.addModal
@@ -130,8 +110,6 @@ const handleEdit = (item) =>{
   state.newResult.categoryId = null
   state.editModal = !state.editModal
 }
-//#endregion
-
 </script>
 <template>
   <v-toolbar class="mb-5" :elevation="1" color="white" rounded>
@@ -142,7 +120,8 @@ const handleEdit = (item) =>{
     <v-card-text>
       <v-row>
         <v-col cols="12" xs="6" sm="6" md="8">
-          <v-btn color="primary" variant="tonal" :disabled="state.tableData ? false : true" @click="handlePost">
+          <v-btn class="bg-blue-grey-lighten-1" size="large" :disabled="state.tableData ? false : true" @click="handlePost">
+            <v-icon class="ml-2">mdi-plus-circle-multiple</v-icon>
             اضافه کردن فیلد جدید به نسخه
           </v-btn>
         </v-col>
@@ -161,23 +140,20 @@ const handleEdit = (item) =>{
       <v-table>
         <thead>
           <tr>
-            <th v-for="header in [{title:'ردیف'},{title:'عنوان'},{title:'مقدار اولیه'}]">
-              {{header.title}}
-            </th>
+            <th>ردیف</th>
+            <th>عنوان</th>
+            <th>مقدار اولیه</th>
             <th></th>
           </tr>
         </thead>
         <tbody>
-          <tr
-            v-for="(item,index) in state?.tableData"
-            :key="index"
-          >
+          <tr v-for="(item,index) in state?.tableData" :key="index">
             <td>{{ index+1 }}</td>
-            <td>{{ item?.title }}</td>
-            <td>{{ item?.defaultValue }}</td>
+            <td>{{ item.title }}</td>
+            <td>{{ item.defaultValue }}</td>
             <td class="text-left">
-              <v-btn color="orange" class="ml-3" variant="tonal" @click="handleEdit(item)">ویرایش</v-btn>
-              <v-btn color="red" variant="tonal" @click="handleDelete(item)">حذف</v-btn>
+              <v-btn color="orange" variant="text" icon="mdi-pen" @click="handleEdit(item)"></v-btn>
+              <v-btn color="red" variant="text" icon="mdi-delete" @click="handleDelete(item)"></v-btn>
             </td>
           </tr>
         </tbody>

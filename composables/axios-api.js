@@ -19,7 +19,8 @@ HttpClient.interceptors.request.use(
     (config) => {
         clearTimeout(timerLoading)
         timerLoading=setTimeout(() => {
-            common.globalLoading()            
+            const app = appStore()
+            app.setloading(true)         
         }, 500);
         const token=localStorage.getToken()
         if (token) {
@@ -28,7 +29,7 @@ HttpClient.interceptors.request.use(
         return config;
     },
     (error) => {
-        console.log(error); // for debug
+        console.error(error);
         return Promise.reject(error);
     }
 );
@@ -36,8 +37,8 @@ HttpClient.interceptors.request.use(
 HttpClient.interceptors.response.use(
     (response) => {
          clearTimeout(timerLoading)
-
-        common.endLoading()
+         const app = appStore()
+         app.setloading(false)
         
         if (
             response.headers["content-type"] ===
@@ -50,38 +51,27 @@ HttpClient.interceptors.response.use(
     },
     (error) => {
          clearTimeout(timerLoading)
-        
-        common.endLoading()
-        // store.globalLoading=false;
-        // debugger;
-        // error.response.data.messages
+         const app = appStore()
+         app.setloading(false)
         if (error && error.response) {
             switch (error.response.status) {
                 case 0:
-                    // common.showError({ "عدم ارتباط با سرور": { "": "با مدیر سامانه تماس بگیرید" } })
+                    console.error("عدم ارتباط با سرور");
                     break;
                 case 400:
-                    console.log("وقوع خطا در سمت سرور...");
-                    // common.showError({ "وقوع خطا در سمت سرور...": { "": "" } })
-
+                    console.error("وقوع خطا در سمت سرور...");
                     break;
                 case 401:
-                    console.log("عدم احراز هویت");
-                    // common.showError({ "عدم احراز هویت": { "": "" } })
-
-                    //window.location.href = "/account/auth";
-                    routerInstance.push("/account/login");
+                    console.error("عدم احراز هویت");
+                    navigateTo('/auth/login')
                     break;
                 case 403:
-                    console.log("مشکل عدم دسترسی");
-                    // common.showError({ "مشکل عدم دسترسی": { "": "" } })
-
-                    //window.location.href = "/account/auth";
-                    routerInstance.push("/accessDenied");
+                    console.error("مشکل عدم دسترسی");
+                    navigateTo('/accessDenied')
                     break;
                 case 404:
-                    console.log("درخواست شما سمت سرور یافت نشد");
-                    // common.showError({ "درخواست شما سمت سرور یافت نشد": { "": "" } })
+                    console.error("درخواست شما سمت سرور یافت نشد");
+                    navigateTo('/notFound')
                     break;
                 case 405:
                     break;
@@ -96,7 +86,8 @@ HttpClient.interceptors.response.use(
                 case 415:
                     break;
                 case 500:
-                    // common.showError({ "خطا در سمت سرور": { "": "با مدیر سامانه تماس بگیرید" } })
+                    console.error("خطا در سمت سرور")
+                    navigateTo('/serverError')
                     break;
                 case 501:
                     break;

@@ -125,7 +125,7 @@ const putDislike = async (id) => {
           </v-card-title>
           <v-divider></v-divider>
           <v-card-item>
-            <BaseImage :src="state.data?.imageIds" max-width="400" class="mx-auto" :alt="state.data?.title"></BaseImage>
+            <BaseImage :src="state.data?.imageIds" max-width="400" class="mx-auto" :alt="state.data?.title"/>
           </v-card-item>
           <v-card-text>
             <div v-html="state.data?.body">

@@ -47,7 +47,7 @@ await fetchApi.post(apiPath.public.Product.getAll, {body:{}})
       <v-col cols="6" sm="4" md="3" lg="2" v-for="(item,index) in state.data" :key="index">
         <nuxtLink :to="`/product/${item.id}-${item.title.replaceAll(' ','-')}`">
           <v-card class="rounded-xl">
-            <BaseImage :src="item.imageList.find(x=>x.isDefault)?.id" is-thumbnail="true" :alt="item.title"></BaseImage>
+            <BaseImage :src="item.imageList.find(x=>x.isDefault)?.id" :is-thumbnail="true" :alt="item.title"/>
             <v-card-text class="text-wrap">
               <p class="height-42 overflow-hidden">
                 <strong>{{ item.title }}</strong>

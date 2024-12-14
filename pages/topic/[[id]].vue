@@ -193,7 +193,7 @@ const clearReply = ()=>{
             <div class="d-flex mt-3" style="gap: 20px;">
               <div style="border-radius: 100%;border: 1px solid #e5e5e5;padding: 1px;width: 60px;height: 60px;">
                 <nuxt-link :to="`/expert/${state.question?.expertId}`">
-                  <BaseImage style="border-radius: 100%;" width="60" is-thumbnail="true"></BaseImage>
+                  <BaseImage style="border-radius: 100%;" width="60" :is-thumbnail="true"/>
                 </nuxt-link>
               </div>
               <div class="w-100">
@@ -233,7 +233,8 @@ const clearReply = ()=>{
                       <p class="py-3" style="padding-inline: 1rem;">{{ state.replyTo?.message }}</p>
                     </v-card>
                   </div>
-                  <div class="d-flex w-100" :style="state.newPost?.parentId? 'margin-top:80px;' : ''">
+                  <!-- <div class="d-flex w-100" :style="state.newPost?.parentId? 'margin-top:80px;' : ''"> -->
+                    <div class="d-flex w-100">
                     <v-textarea label="ایجاد متن جدید" variant="solo" auto-grow clearable rows="4"
                       ref="messageInput" v-model="state.newPost.message" elevation="0" prepend-inner-icon="mdi-send"
                       @click:prepend-inner="postPost" :class="state.newPost?.parentId ? '' : 'ml-3'"

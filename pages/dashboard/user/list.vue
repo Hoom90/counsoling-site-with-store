@@ -1,52 +1,53 @@
 <script setup>
+definePageMeta({
+  middleware: 'route-check',
+  layout: 'dashboard'
+});
 const route = useRoute()
 const router = useRouter()
-
-
-dashboardbreadcrumbstore().setBreadCrumbs([
-  {
-    title: 'کاربران ',
-    disabled: true,
-    to: '/dashboard/user/list',
-  }])
-
 const state = reactive({
   users: [],
-  dialogDelete: false,
-  currentUser: {},
-  dialogExpert: false,
-  page: {
+  metadata: {
     size: route.query?.size ?? 10,
     index: route.query?.index ?? 1,
-    total: 1,
-    totalPage: 1
+    totalCount: 1,
+    totalPages: 1
   },
-  table: {
-    headers: ["ردیف", "نام", "نام خانوادگی", "شماره تماس"]
-  }
+  currentUser: {},
+  dialogDelete: false,
+  dialogExpert: false,
+  // searchFilters:null,
 })
 
+onMounted(()=>{
+  load()
+  dashboardbreadcrumbstore().setBreadCrumbs([
+    {
+      title: 'کاربران ',
+      disabled: true,
+      to: '/dashboard/user/list',
+    }])
+})
+
+
 const load = () => {
-  axiosApi().get(apiPath.Users.get.paged(route.query?.index, route.query?.size))
+  axiosApi().get(apiPath.Users.get.paged(route.query.index, route.query.size))
     .then(r => {
       state.users = r.data
-      state.page.total = r.metadata.totalCount
-      state.page.totalPage = r.metadata.totalPages
-      if (state.users.expertId) {
-        state.isExpert = true
-      }
-    }).catch(e => {
-      common.showError(e?.data?.messages)
-    }).finally(() => {
-
-    })
+      state.metadata.totalCount = r.metadata.totalCount
+      state.metadata.totalPages = r.metadata.totalPages
+    }).catch(e => e?.status != 401 ? common.showError(e?.data?.messages) : null)
 }
 
-load()
 
 const changePageing = () => {
-  router.replace({ path: '/dashboard/user/list', query: { size: state.page.size, index: state.page.index } })
+  let path = '/dashboard/user/list'
+  let query = null
+  if (state.metadata.size && state.metadata.size != 10) query = { ...query, size: state.metadata.size }
+  if (state.metadata.index && state.metadata.index != 1) query = { ...query, index: state.metadata.index }
+  // if (state.searchFilters && state.searchFilters != '') query = { ...query, search: state.searchFilters }
 
+  router.replace({ path, query })
   setTimeout(() => {
     load()
   }, 50);
@@ -63,11 +64,7 @@ const acceptDelete = (r) => {
       .then(r => {
         load()
         common.showMessage('کاربر حذف شد')
-      }).catch(e => {
-        common.showError(e?.data?.messages)
-      }).finally(() => {
-
-      })
+      }).catch(e => common.showError(e?.data?.messages))
   }
   state.dialogDelete = false
 }
@@ -83,10 +80,8 @@ const acceptExpert = (r) => {
       .then(res => {
         common.showMessage("متخصص ثبت شد ")
         load()
-        // router.push(`/dashboard/expert/${res.data}`)
-      }).catch(e => {
-        common.showError(e?.data?.messages)
       })
+      .catch(e => common.showError(e?.data?.messages))
   }
   state.dialogExpert = false
 }
@@ -106,11 +101,13 @@ const acceptExpert = (r) => {
     <v-card-text class="d-flex pa-3">
       <v-row>
         <v-col cols="12" xs="6" sm="4" md="8"></v-col>
-        <v-col cols="12" xs="6" sm="4" md="2">
-          <v-text-field type="search" variant="outlined" density="compact" label="جستجو" hide-details=""></v-text-field>
-        </v-col>
-        <v-col cols="12" xs="6" sm="4" md="2">
-          <v-select v-model="state.page.size" :items="constract.pageSize" variant="outlined" density="compact"
+        <!-- <v-col cols="12" xs="6" sm="4" md="2">
+          <v-form @submit.prevent="changePageing">
+            <v-text-field v-model="state.searchFilters" type="search" variant="outlined" density="compact" label="جستجو" hide-details append-inner-icon="mdi-magnify" @click:append-inner="changePageing" @blur="changePageing"></v-text-field>
+          </v-form>
+        </v-col> -->
+        <v-col cols="12" xs="6" sm="4">
+          <v-select v-model="state.metadata.size" :items="contracts.pageSize" variant="outlined" density="compact"
             label="تعداد نمایش" @update:modelValue="changePageing" hide-details></v-select>
         </v-col>
       </v-row>
@@ -118,29 +115,30 @@ const acceptExpert = (r) => {
     <v-table>
       <thead>
         <tr>
-          <th v-for="item in state.table.headers">
-            {{ item }}
-          </th>
+          <th>ردیف</th>
+          <th>نام</th>
+          <th>نام خانوادگی</th>
+          <th>شماره تماس</th>
           <th></th>
         </tr>
       </thead>
       <tbody>
         <tr v-for="(item, i) in state.users" :key="item.id">
-          <td>{{ ((state.page.index - 1) * state.page.size + i) + 1 }}</td>
+          <td>{{ ((state.metadata.index - 1) * state.metadata.size + i) + 1 }}</td>
           <td>{{ item.firstName }}</td>
           <td>{{ item.lastName }}</td>
-          <td>{{ item.phoneNumber }}</td>
+          <td>{{ `0${item.phoneNumber}` }}</td>
           <td>
             <div class="float-left">
-              <v-btn variant="tonal" color="info" @click="handelExpert(item)" v-if="!item.expertId">تعیین به متخصص</v-btn>
-              <v-btn variant="tonal" color="info" class="mx-2" :to="'/dashboard/user/' + item.id">ویرایش</v-btn>
-              <v-btn variant="tonal" color="warning" @click="handleDelete(item)" v-if="item.id != 1">حذف</v-btn>
+              <v-btn variant="text" color="teal" @click="handelExpert(item)" v-if="!item.expertId" prepend-icon="mdi-star">تعیین به متخصص</v-btn>
+              <v-btn variant="text" color="orange" icon="mdi-pen" :to="'/dashboard/user/' + item.id"></v-btn>
+              <v-btn variant="text" color="red" icon="mdi-delete" @click="handleDelete(item)" v-if="item.id != 1"></v-btn>
             </div>
           </td>
         </tr>
       </tbody>
     </v-table>
-    <v-pagination :length="state.page.totalPage" v-model="state.page.index" class="mx-auto"
+    <v-pagination v-if="state.metadata.totalCount > state.metadata.size" :length="state.metadata.totalPages" v-model="state.metadata.index" class="mx-auto"
       @update:modelValue="changePageing">
     </v-pagination>
   </v-card>
@@ -165,8 +163,3 @@ const acceptExpert = (r) => {
 
   </mj-dialog>
 </template>
-<style>
-.page-size-select .v-input__control {
-  width: 100px;
-}
-</style>

@@ -1,4 +1,8 @@
 <script setup>
+definePageMeta({
+  middleware: 'route-check',
+  layout: 'dashboard'
+});
 const route = useRoute()
 
 const state = reactive({
@@ -250,7 +254,8 @@ const copySchedule = (s) => {
 
             <div v-for="task in state.tasks.filter(x => dateConverter.normalMiladi(x.startTime) == day)"
               class="schedule-task" :title="`از:${getTime(task.startTime)}  تا:${getTime(task.endTime)}`"
-              :style="{ top: location(task), height: length(task) }">
+              >
+              <!-- :style="`top: location(task), height: length(task)`"> -->
 
 
               <div class="task-inner " :class="{ 'bg-success': task.reserved }">

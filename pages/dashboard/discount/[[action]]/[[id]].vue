@@ -1,4 +1,8 @@
 <script setup>
+definePageMeta({
+  middleware: 'route-check',
+  layout: 'dashboard'
+});
 const route = useRoute();
 const router = useRouter();
 const state = reactive({

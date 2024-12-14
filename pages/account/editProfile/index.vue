@@ -1,5 +1,5 @@
 <script setup>
-import validator from "@/composables/validator"
+definePageMeta({ layout: 'account', middleware: 'route-check', })
 import avatar from "@/assets/img/avatar.png"
 const verifyForm = ref({});
 const user = userStore()
@@ -80,7 +80,8 @@ const deleteUploadedImage = () => {
 </script>
 
 <template>
-  <fieldset class="myFieldset rounded-xl mb-3">
+  <fieldset class="myFieldset rounded-xl mb-3 d-flex align-center ga-5">
+    <v-btn icon="mdi-chevron-right" class="bg-teal d-md-none" to="/account/home"></v-btn>
     <p class="text-18"><strong>ویرایش حساب کاربری</strong></p>
   </fieldset>
   <fieldset class="myFieldset rounded-xl">

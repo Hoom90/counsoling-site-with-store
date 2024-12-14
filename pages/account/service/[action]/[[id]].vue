@@ -1,4 +1,5 @@
 <script setup>
+definePageMeta({ layout: 'account', middleware: 'route-check', })
 import noimage from "@/assets/img/no-image-icon.png"
 import moment from "jalali-moment";
 
@@ -98,7 +99,7 @@ const postData = async () =>{
       <v-col cols="12" sm="8">
         <v-row>
           <v-col cols="12" sm="3" class="text-center">
-            <BaseImage :name="state.data.imageId" :no-image="noimage" class="rounded-pill border-xl w-100"></BaseImage>
+            <BaseImage :name="state.data.imageId" :no-image="noimage" class="rounded-pill border-xl w-100"/>
           </v-col>
           <v-col cols="12" sm="9">
             <p class="mb-2">
@@ -191,5 +192,3 @@ const postData = async () =>{
 
   </fieldset>
 </template>
-
-<style></style>

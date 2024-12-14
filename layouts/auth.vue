@@ -1,6 +1,3 @@
-<script setup>
-
-</script>
 <template>
     <v-theme-provider>
         <v-layout>
@@ -8,12 +5,10 @@
                 <v-col cols="12" :md="8">
                     <div class="leftBox pa-3 pb-0 h-100">
                         <div class="leftBox-inner h-100 d-flex justify-center align-center flex-column">
-
                             <slot />
                             <nuxt-link to="/" class="pa-5">
                               <small>بازگشت به صفحه اصلی</small>
                             </nuxt-link>
-
                         </div>
                     </div>
                 </v-col>
@@ -22,7 +17,6 @@
                 </v-col>
             </v-row>
         </v-layout>
-
     </v-theme-provider>
 </template>
 
