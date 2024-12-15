@@ -19,6 +19,7 @@ const state = reactive({
 
 onMounted(() => {
     getExpert()
+    getAllCategory()
     state.expert.dateOfBirth = new Date()
     dashboardbreadcrumbstore().setBreadCrumbs([
         {
@@ -50,6 +51,14 @@ const getProvinces = async () => {
     await axiosApi().get(apiPath.Province.get.cities)
         .then((res) => state.province = res.data)
         .catch((error) => common.showError(error?.data?.messages))
+}
+
+const getAllCategory = async () => {
+  await axiosApi().get(apiPath.Category.get.all)
+  .then((res) => {
+    state.categoryList = res.data;
+    state.selectedreadonlyCategories = state.categoryList?.data?.filter(x=>state.selectedCategories.includes(x.id))
+  }).catch((error) => common.showError(error?.data?.messages))
 }
 
 const putData = async () => {
@@ -166,7 +175,7 @@ const deleteUploadedImage = () => {
 
                 <v-card class="mb-5">
                     <v-card-text>
-                        <BaseCategorySelect v-model="state.expert.categoryIds" label="تخصص کارشناس"
+                        <BaseCategorySelect v-model="state.expert.categoryIds" label="تخصص کارشناس" :items="state.categoryList"
                             :rules="validator.expert.categoryIds" hide-details />
                     </v-card-text>
                 </v-card>

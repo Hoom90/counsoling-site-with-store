@@ -66,8 +66,7 @@ const data = await fetchApi.get(`${apiPath.public.Article.get.query}?ContentType
             <nuxtLink :to="`article/${item.id}/${item.title.replaceAll(' ','-')}`">
               <v-card class="d-flex flex-column justify-space-between rounded-xl" hover>
                 <v-card-text class="pa-0">
-                  <!-- <BaseImage :src="item.image" :is-thumbnail="true" :alt="item.title" style="aspect-ratio: 1;"/> -->
-                  <BaseImage :src="item.image" :is-thumbnail="true" :alt="item.title"/>
+                  <BaseImage :src="item.image" :is-thumbnail="true" :alt="item.title" class="articlesCardBaseImage"/>
                   <p class="height-42 text-wrap pa-3">
                     <strong>{{ item.title }}</strong>
                   </p>
@@ -99,6 +98,9 @@ const data = await fetchApi.get(`${apiPath.public.Article.get.query}?ContentType
 <style scoped>
 h4{
   text-wrap: pretty;
+}
+.articlesCardBaseImage{
+  aspect-ratio: 1;
 }
 </style>
 

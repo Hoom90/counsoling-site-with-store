@@ -1,5 +1,5 @@
 <script setup>
-const props = defineProps(['modelValue', 'rules' , 'disabled','label','multiple'])
+const props = defineProps(['modelValue', 'rules' ,'items', 'disabled','label','multiple'])
 const emits = defineEmits(['update:modelValue'])
 const state = reactive({
   categoryList: [],
@@ -10,23 +10,11 @@ const state = reactive({
 watch(() => props.modelValue, () => {
   state.selectedCategories = props.modelValue
 })
-
-const getAllCategory = async () => {
-  await axiosApi().get(apiPath.Category.get.all)
-  .then((res) => {
-    state.categoryList = res.data;
-    state.selectedreadonlyCategories = state.categoryList?.data?.filter(x=>state.selectedCategories.includes(x.id))
-  }).catch((error) => {
-    common.showError(error?.data?.messages)
-  });
-}
-
-getAllCategory()
 </script>
 
 <template>
       <v-autocomplete v-model="state.selectedCategories" variant="outlined" :chips="props.multiple ?? true" closable-chips :multiple="props.multiple ?? true" :rules="props.rules"
-        :label="props.label ?? 'انتخاب دسته بندی'" :items="state.categoryList" item-title="fullTitle" item-value="id"
+        :label="props.label ?? 'انتخاب دسته بندی'" :items="props.items" item-title="fullTitle" item-value="id"
         @update:model-value="emits('update:modelValue', state.selectedCategories)" v-if="!props.disabled ?? true">
         <template v-slot:item="{ props, item }">
           <v-list-item v-bind="props" :class="{ 'text-center text-grey-lighten-1 bg-grey-lighten-4': !item?.raw?.selectable }"

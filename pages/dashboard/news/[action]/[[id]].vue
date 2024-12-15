@@ -29,6 +29,7 @@ const state = reactive({
 
 onMounted(() => {
   load()
+  getAllCategory()
   dashboardbreadcrumbstore().setBreadCrumbs([
     {
       title: 'اخبار ',
@@ -82,6 +83,14 @@ const load = async () => {
       })
       .catch(e => common.showError(e?.data?.messages))
       state.loadEditor=true
+}
+
+const getAllCategory = async () => {
+  await axiosApi().get(apiPath.Category.get.all)
+  .then((res) => {
+    state.categoryList = res.data;
+    state.selectedreadonlyCategories = state.categoryList?.data?.filter(x=>state.selectedCategories.includes(x.id))
+  }).catch((error) => common.showError(error?.data?.messages))
 }
 
 const uploadImage = (value) => {
@@ -152,7 +161,7 @@ const deleteUploadedImage = () => {
           <v-card-title>دسته بندی</v-card-title>
           <v-divider></v-divider>
           <v-card-text>
-            <BaseCategorySelect v-model="state.formData.categoryIds" />
+            <BaseCategorySelect v-model="state.formData.categoryIds" :items="state.categoryList"/>
           </v-card-text>
         </v-card>
 

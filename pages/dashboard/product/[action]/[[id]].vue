@@ -27,6 +27,7 @@ const state = reactive({
 onMounted(() => {
   getFeatures()
   load()
+  getAllCategory()
   dashboardbreadcrumbstore().setBreadCrumbs([
     {
       title: 'محصولات',
@@ -92,6 +93,14 @@ const getFeatures = async () =>{
       state.tags = res.data
     })
     .catch(e => common.showError(e?.data?.messages))
+}
+
+const getAllCategory = async () => {
+  await axiosApi().get(apiPath.Category.get.all)
+  .then((res) => {
+    state.categoryList = res.data;
+    state.selectedreadonlyCategories = state.categoryList?.data?.filter(x=>state.selectedCategories.includes(x.id))
+  }).catch((error) => common.showError(error?.data?.messages))
 }
 
 const addNewFeature = () => {
@@ -198,7 +207,7 @@ const setCategoryId = () =>{
             <v-text-field v-model="state.formData.title" variant="outlined" size="x-large" label="عنوان محصول*"
               :rules="validator.content.title" counter="100" counter-value></v-text-field>
 
-            <BaseCategorySelect v-model="state.formData.categoryId" label="دسته بندی*" :rules="validator.content.categoryId" class="mt-1" @update:model-value="setCategoryId" :multiple="false"/>
+            <BaseCategorySelect v-model="state.formData.categoryId" label="دسته بندی*" :items="state.categoryList" :rules="validator.content.categoryId" class="mt-1" @update:model-value="setCategoryId" :multiple="false"/>
 
 
             <BaseCurrencyField  v-model="state.formData.price" label="قیمت*" variant="outlined" size="x-large" prefix="تومان " :rules="validator.content.price" class="mt-1"/>

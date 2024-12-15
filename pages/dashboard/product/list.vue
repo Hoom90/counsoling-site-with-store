@@ -78,7 +78,10 @@ const acceptDelete = async (r) => {
   <v-toolbar class="mb-5" :elevation="1" color="white" rounded>
     <v-toolbar-title>محصولات</v-toolbar-title>
     <v-spacer></v-spacer>
-    <v-btn to="/dashboard/product/add" variant="tonal" color="info">ایجاد محصول جدید</v-btn>
+    <v-btn class="bg-blue-grey-lighten-1" size="large" to="/dashboard/product/add">
+      <v-icon class="ml-2">mdi-plus-circle-multiple</v-icon>
+      ایجاد محصول جدید
+    </v-btn>
   </v-toolbar>
 
   <v-card>

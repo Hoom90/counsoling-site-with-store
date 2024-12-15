@@ -1,8 +1,6 @@
 <script setup>
 definePageMeta({ layout: 'account', middleware: 'route-check', })
-import noimage from "@/assets/img/no-image-icon.png"
 import moment from "jalali-moment";
-
 const route = useRoute()
 const state = reactive({
   data: [],
@@ -24,10 +22,9 @@ const state = reactive({
   }
 })
 
-//#region GET
-onMounted(async () => {
-  await getData()
-  await getCategory()
+onMounted(() => {
+  getData()
+  getCategory()
 })
 
 const getData = async () => {
@@ -40,19 +37,13 @@ const getData = async () => {
         state.newCounselingResult = state.data.counselingResult
       }
     })
-    .catch(error => {
-      common.showError(error?.data?.messages)
-    })
+    .catch(error => common.showError(error?.data?.messages))
 }
 
 const getCategory = async () => {
   await axiosApi().get(apiPath.Category.get.all)
-    .then((res) => {
-      state.categoryList = res.data;
-    })
-    .catch((error) => {
-      common.showError(error?.messages)
-    })
+    .then((res) => state.categoryList = res.data)
+    .catch((error) => common.showError(error?.messages))
 }
 
 const getResult = async () => {
@@ -69,13 +60,9 @@ const getResult = async () => {
       });
       state.newCounselingResult.results = state.result
     })
-    .catch((error) => {
-      common.showMessage(error?.messages)
-    })
+    .catch((error) => common.showMessage(error?.messages))
 }
-//#endregion
 
-//#region POST
 const postData = async () =>{
   state.newCounselingResult.orderId = route.params.id
   state.newCounselingResult.categoryId = state.selectedCategory
@@ -85,9 +72,7 @@ const postData = async () =>{
     common.showMessage(res.messages)
     state.selectedCategory = state.newCounselingResult.categoryId
   })
-  .catch((error)=>{
-    common.showError(error?.messages)
-  })
+  .catch((error)=>common.showError(error?.messages))
 }
 
 </script>
@@ -99,7 +84,7 @@ const postData = async () =>{
       <v-col cols="12" sm="8">
         <v-row>
           <v-col cols="12" sm="3" class="text-center">
-            <BaseImage :name="state.data.imageId" :no-image="noimage" class="rounded-pill border-xl w-100"/>
+            <BaseImage :name="state.data.imageId" class="rounded-pill border-xl w-100 mx-auto" style="max-width: 350px;"/>
           </v-col>
           <v-col cols="12" sm="9">
             <p class="mb-2">
@@ -122,39 +107,44 @@ const postData = async () =>{
         </v-row>
       </v-col>
       <v-col cols="12" sm="4" class="text-md-left text-center">
-        <v-btn color="blue" variant="tonal" to="/account/service/">بازگشت به خدمات</v-btn>
+        <v-btn color="teal" variant="tonal" to="/account/service/" class="w-100">بازگشت به خدمات</v-btn>
       </v-col>
     </v-row>
   </fieldset>
   <fieldset class="myFieldset rounded-xl">
     <legend>صدور نسخه</legend>
-    <v-form @submit.prevent="postData" :readonly="state.data?.counselingResult?.id ?? false">
-      <v-row class="px-5">
+    <v-form @submit.prevent="postData">
+      <v-row no-gutters class="px-5">
         <v-col cols="12" lg="6" class="">
-          <v-autocomplete label="دسته بندی نسخه" variant="outlined" v-model="state.selectedCategory"
-            :items="state.categoryList" item-title="fullTitle" item-value="id">
-            <template v-slot:item="{ props, item }">
-              <v-list-item v-bind="props" @click="getResult"
-                :class="{ 'text-center selected': !item?.raw?.selectable }" :disabled="!item?.raw?.selectable"
-                :title="item?.raw?.fullTitle"></v-list-item>
-            </template>
-          </v-autocomplete>
+          <template v-if="state.data?.counselingResult?.id">
+            <label>دسته بندی نسخه: </label>
+            <span>{{ state.selectedCategory }}</span>
+          </template>
+          <BaseCategorySelect v-else v-model="state.selectedCategory" label="دسته بندی نسخه" :items="state.categoryList" :multiple="false"/>
         </v-col>
-        <v-col cols="12" lg="6" class="">
-          <v-text-field
+        <v-col cols="12" lg="6">
+          <template v-if="state.data?.counselingResult?.id">
+            <label>مدت زمان مشاوره (دقیقه): </label>
+            <span>{{ state.newCounselingResult.duration }}</span>
+          </template>
+          <v-text-field v-else
             v-model="state.newCounselingResult.duration"
             variant="outlined"
             label="مدت زمان مشاوره (دقیقه)"
             type="number"
           ></v-text-field>
         </v-col>
-        <v-col cols="12"><v-divider class="mb-5"></v-divider></v-col>
       </v-row>
+      <v-divider class="my-5"></v-divider>
 
       <!-- add form -->
-      <v-row class="mb-1 px-5" v-if="state.result">
+      <v-row no-gutters class="mb-1 px-5" v-if="state.result">
         <v-col cols="12" lg="6" v-if="state.result.length !== 0" v-for="(field,index) in state?.result">
-          <v-text-field v-model="state.newCounselingResult.results[index].value" :label="field?.title" variant="outlined"></v-text-field>
+          <template v-if="state.data?.counselingResult?.id">
+            <label>{{ field?.title }}: </label>
+            <span>{{ state.newCounselingResult.results[index].value }}</span>
+          </template>
+          <v-text-field v-else v-model="state.newCounselingResult.results[index].value" :label="field?.title" variant="outlined"></v-text-field>
         </v-col>
         <v-col cols="12" v-if="state.result.length != 0">
           <v-text-field
@@ -175,12 +165,21 @@ const postData = async () =>{
         </v-col>
       </v-row>
       <!-- view form -->
-      <v-row class="mb-1 px-5" v-else>
+      <v-row no-gutters class="mb-1 px-5" v-else>
         <v-col cols="12" lg="12" v-for="(field,index) in state?.newCounselingResult.resultItems">
-          <v-text-field v-model="state.newCounselingResult.resultItems[index].value" :label="field?.title" variant="outlined"></v-text-field>
+          <template v-if="state.data?.counselingResult?.id">
+            <label>{{ field?.title }}: </label>
+            <span>{{ state.newCounselingResult.resultItems[index].value }}</span>
+          </template>
+          <v-text-field v-else v-model="state.newCounselingResult.resultItems[index].value" :label="field?.title" variant="outlined"></v-text-field>
         </v-col>
         <v-col cols="12">
+          <template v-if="state.data?.counselingResult?.id">
+            <label>توضیحات بیشتر: </label>
+            <span>{{ state.newCounselingResult.summary }}</span>
+          </template>
           <v-textarea
+            v-else
             v-model="state.newCounselingResult.summary"
             variant="outlined"
             label="توضیحات بیشتر"

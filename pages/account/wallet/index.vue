@@ -118,13 +118,48 @@ const openPayPort = (r) => {
     </fieldset>
   </template>
 
-  <!-- records -->
-  <fieldset class="myFieldset rounded-xl mb-5">
+  <!-- records > cardlist -->
+  <v-card flat class="d-md-none mb-5" v-for="(item, index) in state.records" :key="index">
+    <v-row no-gutters>
+      <v-col cols="12" class="mb-3">
+        {{ item.description }}
+      </v-col>
+      <v-col cols="6">
+        <v-icon color="grey">mdi-calendar-outline</v-icon>
+        <span>{{ dateConverter.convertToJalali(item.createdOn) }}</span>
+      </v-col>
+      <v-col cols="6" v-if="item.indebtedAmount != 0" dir="ltr">
+        <span class="text-20 text-red">
+          <strong>-{{ item.indebtedAmount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") }}</strong>
+        </span>
+        <small>تومان</small>
+      </v-col>
+      <v-col cols="6" v-if="item.creditAmount != 0" dir="ltr">
+        <span class="text-20 text-green">
+          <strong>+{{ item.creditAmount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") }}</strong>
+        </span>
+        <small>تومان</small>
+      </v-col>
+    </v-row>
+    <v-divider></v-divider>
+  </v-card>
+  <v-card flat class="d-md-none mt-5">
+    <v-pagination v-if="state.pagination.totalCount > state.pagination.pageSize" :length="state.pagination.totalPages" v-model="state.pagination.pageIndex" class="mx-auto"
+      @update:modelValue="changePageing">
+    </v-pagination>
+  </v-card>
+
+  <!-- records > table -->
+  <fieldset class="myFieldset rounded-xl d-none d-md-block">
     <legend>سوابق پرداخت</legend>
     <v-table>
       <thead>
         <tr>
-          <th v-for="header in state.table.headers">{{ header }}</th>
+          <th>ردیف</th>
+          <th>عنوان</th>
+          <th>تاریخ</th>
+          <th>بدهکار</th>
+          <th>بستانکار</th>
         </tr>
       </thead>
       <tbody>
@@ -137,17 +172,9 @@ const openPayPort = (r) => {
         </tr>
       </tbody>
     </v-table>
-    <v-pagination :length="state.pagination.totalPages" v-model="state.pagination.pageIndex" class="mx-auto"
+    <v-pagination v-if="state.pagination.totalCount > state.pagination.pageSize" :length="state.pagination.totalPages" v-model="state.pagination.pageIndex" class="mx-auto"
       @update:modelValue="changePageing">
     </v-pagination>
-    <v-divider></v-divider>
-    <v-card-text>
-      <v-row>
-        <v-col></v-col>
-        <v-col>جمع حساب مالی</v-col>
-        <v-col>{{ state.balance.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") }} تومان</v-col>
-      </v-row>
-    </v-card-text>
   </fieldset>
 
   <mj-dialog v-model="state.modal" title="رسید پیگیری پرداخت" :action-btn="true" action-btn-text="پرداخت"

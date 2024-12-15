@@ -6,7 +6,7 @@ const state = reactive({
   sidebar: false,
   asideProfile: [
     { name: "پنل کاربری من", icon: 'mdi-home-outline', url: "/account/home" },
-    { name: "پنل ادمین", icon: 'mdi-hand-heart-outline', url: "/dashboard" },
+    { name: "پنل ادمین", icon: 'mdi-hand-heart-outline', url: "/dashboard/user/list" },
     { name: "ورود یا ثبت نام", icon: 'mdi-newspaper', url: "/auth/login" },
   ],
   asideDefault: [
@@ -62,7 +62,7 @@ async function logOut() {
         active-class="text-blue">
       </v-list-item>
       <v-list-item v-if="user.getIsAdmin" class="d-md-none d-flex" prepend-icon="mdi-login" title="پنل ادمین"
-        to="/dashboard" active-class="text-blue">
+        to="/dashboard/user/list" active-class="text-blue">
       </v-list-item>
       <v-divider></v-divider>
       <v-list-item :prepend-icon="item.icon" :title="item.name" active-class="text-blue" :to="item.url"
@@ -105,7 +105,7 @@ async function logOut() {
         <v-icon>mdi-login</v-icon>
         <strong><small>پنل کاربری من</small></strong>
       </v-btn>
-      <v-btn class="d-none d-md-flex" v-if="user.getIsAdmin" to="/dashboard" variant="text" rounded="xl" size="x-large">
+      <v-btn class="d-none d-md-flex" v-if="user.getIsAdmin" to="/dashboard/user/list" variant="text" rounded="xl" size="x-large">
         <v-icon>mdi-login</v-icon>
         <strong><small>پنل ادمین</small></strong>
       </v-btn>

@@ -110,28 +110,79 @@ const handelDeleteOrder = (item) => {
     <p class="text-18"><strong>سفارشات</strong></p>
   </fieldset>
 
-  <fieldset class="myFieldset rounded-xl">
+  <!-- records > cardlist -->
+  <v-card flat class="d-md-none mb-5" v-for="(item, index) in state.records" :key="index">
+    <v-row no-gutters>
+      <v-col cols="12" class="mb-3">
+        {{ `نام کارشناس: ${item.expertFirstName} ${item.expertLastName}` }}
+      </v-col>
+      <v-col cols="6">
+        <v-icon color="grey">mdi-calendar-outline</v-icon>
+        <span>{{ dateConverter.convertToJalali(item.createdOn) }}</span>
+      </v-col>
+      <v-col cols="6" dir="ltr">
+        <span class="text-20">
+          <strong>{{ item.amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") }}</strong>
+        </span>
+        <small>تومان</small>
+      </v-col>
+      <v-col cols="12" class="mb-3">
+        <span>
+          وضعیت سفارش: 
+        </span>
+        <span class="text-16">
+          <strong>{{ item.stateTitle }}</strong>
+        </span>
+      </v-col>
+      <v-col cols="6">
+        <v-btn v-if="item.state == 2" class="bg-green" rounded="0" block
+          @click="postPayment(item)">
+          <small>تکمیل پرداخت</small>
+        </v-btn>
+        <v-btn class="bg-grey" rounded="0" @click="showDetails(item)" block>
+          <v-icon>mdi-eye</v-icon>
+          <small>جزئیات پرداخت</small>
+        </v-btn>
+      </v-col>
+      <v-col cols="6">
+        <v-btn v-if="item.state == 4" class="bg-teal" rounded="0" block
+        @click="handleResult(item.id)">
+          <v-icon>mdi-note</v-icon>
+          <small>نسخه شما</small>
+        </v-btn>
+        <v-btn v-if="item.state == 1 || item.state == 2 || item.state == 3" class="bg-red" block
+          rounded="0" @click="handelDeleteOrder(item)">
+          <v-icon>mdi-delete</v-icon>
+          <small>حذف نوبت</small>
+        </v-btn>
+      </v-col>
+    </v-row>
+    <v-divider></v-divider>
+  </v-card>
+  <v-card flat class="d-md-none d-flex justify-space-between">
+    <v-pagination v-if="state.pagination.totalCount > state.pagination.pageSize" :length="state.pagination.totalPages" v-model="state.pagination.pageIndex" class="mx-auto"
+      @update:modelValue="changePageing">
+    </v-pagination>
+  </v-card>
+
+  <!-- table -->
+  <fieldset class="d-none d-md-block myFieldset rounded-xl">
     <v-table>
       <thead>
         <tr>
-          <th v-for="header in state.table.headers">{{ header }}</th>
+          <th>متخصص</th>
+          <th>هزینه</th>
+          <th>تاریخ خرید</th>
+          <th>وضعیت</th>
           <th></th>
         </tr>
       </thead>
       <tbody>
-        <tr v-for="(item, index) in state.records" :key="item.title">
-          <td>{{ ((state.pagination.pageIndex - 1) * state.pagination.pageSize + index) + 1 }}</td>
+        <tr v-for="(item, index) in state.records" :key="index">
           <td>{{ `${item.expertFirstName} ${item.expertLastName}` }}</td>
-          <!-- <td>{{ item.medicalNumber }}</td> -->
-          <!-- <td>{{ item.consultationTime }}</td> -->
           <td>{{ item.amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") }}</td>
-          <!-- <td>{{ item.phoneNumber }}</td> -->
           <td>{{ dateConverter.convertToJalali(item.createdOn) }}</td>
           <td>
-            <!-- <v-chips v-if="!item.completed && !item.isSession" color="success">منتظر پرداخت</v-chips>
-            <v-chips v-if="item.completed && !item.isSession" color="success"> منتظر</v-chips>
-            <v-chips v-if="item.completed && item.isSession" color="success"> نهایی</v-chips> -->
-            <!-- {{ item.state }} -->
             {{ item.stateTitle }}
           </td>
           <td class="text-left pa-0 ma-0 d-flex justify-end">
@@ -151,13 +202,11 @@ const handelDeleteOrder = (item) => {
               variant="tonal" rounded="0" @click="handelDeleteOrder(item)">
               <small>حذف نوبت</small>
             </v-btn>
-
           </td>
-
         </tr>
       </tbody>
     </v-table>
-    <v-pagination :length="state.pagination.totalPages" v-model="state.pagination.pageIndex" class="mx-auto"
+    <v-pagination v-if="state.pagination.totalCount > state.pagination.pageSize" :length="state.pagination.totalPages" v-model="state.pagination.pageIndex" class="mx-auto"
       @update:modelValue="changePageing">
     </v-pagination>
   </fieldset>

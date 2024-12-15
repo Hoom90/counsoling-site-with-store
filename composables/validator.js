@@ -283,4 +283,24 @@ export default {
     ],
   },
   //#endregion
+  ticket:{
+    title: [
+      value => {
+        if (value) return true
+        return 'موضوع تیکت خود را وارد کنید.'
+      },
+    ],
+    department: [
+      value => {
+        if (value) return true
+        return 'دپارتمان مورد نظر خود را وارد کنید.'
+      },
+    ],
+    description: [
+      value => {
+        if (value) return true
+        return 'متن تیکت خود را باید وارد کنید.'
+      },
+    ],
+  }
 };

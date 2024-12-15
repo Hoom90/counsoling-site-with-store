@@ -35,7 +35,7 @@ async function logOut() {
 <template>
   <v-card class="asideCard rounded-xl" style="background: var(--theme-blue)">
     <v-card-text class="d-flex align-center ga-3">
-      <BaseImage :src="user.getUser?.imageId" :no-image="avatar" class="rounded-circle border-xl" style="max-width: 150px; aspect-ratio: 1;"/>
+      <BaseImage :src="user.getUser?.imageId" :no-image="avatar" class="rounded-circle border-xl sidebarBaseImage"/>
       <h1 class="text-white mb-3">
         <strong>
           {{ `${user.getUser.firstName} ${user.getUser.lastName}`}}
@@ -54,5 +54,9 @@ async function logOut() {
   </v-card>
 </template>
 <style>
+.sidebarBaseImage{
+  max-width: 150px;
+  aspect-ratio: 1;
+}
 .asideCard{position: sticky;top: 110px;}
 </style>

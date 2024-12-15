@@ -45,14 +45,14 @@ fetchApi.post(apiPath.public.Category.post, { body: state.payload })
 </template>
 <style>
 .categoryCard{
-  display: grid;
-  align-content: center;
-  color: #4e4e4e;
-  background: rgb(66 142 157 / 35%);
-  transition: all 0.2s linear;
-  padding: 20px;
-  border-radius: 10px;
-  height: 100%;
+  display: grid !important;
+  align-content: center !important;
+  color: #4e4e4e !important;
+  background: rgb(66 142 157 / 35%) !important;
+  transition: all 0.2s linear !important;
+  padding: 20px !important;
+  border-radius: 10px !important;
+  height: 100% !important;
 }
 .categoryCard:hover{
   transform: scale(1.1);
