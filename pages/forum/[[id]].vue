@@ -118,25 +118,35 @@ const postTopic = async (r) => {
 </script>
 
 <template>
-  <v-card flat variant="text" class="d-sm-none mt-3">
-    <v-sheet class="mx-auto" max-width="600">
-      <v-slide-group>
-        <v-slide-group-item v-for="(item,index) in state.category" :key="index">
-          <v-btn class="ma-2 bg-teal" rounded :to="`/forum/${item.id}-${item.title.replaceAll(' ','-')}`">
-            {{ item.title }}
-          </v-btn>
-        </v-slide-group-item>
-      </v-slide-group>
-    </v-sheet>
-  </v-card>
   <v-container>
+    <v-card class="w-100 d-md-none rounded-xl mb-6" elevation="0">
+      <v-card-item>
+        <div class="d-flex justify-space-between align-center">
+          <h3 class="pa-1">{{ `موضوعات گفتگو ${route.params.id ? state.category?.find(item => item.id ==
+            route.params.id.split('-').find(x=>x))?.title ?? '' : ''}` }}</h3>
+          <v-btn color="blue" variant="tonal" v-if="(user.getIsAdmin || user.getIsConsultant) && route.params.id.split('-').find(x=>x)"
+            @click="state.dialogAdd = !state.dialogAdd">افزودن موضوع جدید</v-btn>
+        </div>
+      </v-card-item>
+    </v-card>
     <v-row>
-      <v-col cols="12" md="4" lg="3" class="d-none d-sm-block">
+      <v-card flat variant="text" class="d-md-none">
+        <v-sheet class="mx-auto bg-transparent">
+          <v-slide-group>
+            <v-slide-group-item v-for="(item,index) in state.category" :key="index">
+              <v-btn class="ma-2 bg-teal" rounded :to="`/forum/${item.id}-${item.title.replaceAll(' ','-')}`">
+                {{ item.title }}
+              </v-btn>
+            </v-slide-group-item>
+          </v-slide-group>
+        </v-sheet>
+      </v-card>
+      <v-col cols="12" md="4" lg="3" class="d-none d-md-block">
         <forum-expantion-panel :isClose="state.panel" :categories="state.category" />
       </v-col>
       <v-col cols="12" md="8" lg="9">
 
-        <v-card class="rounded-xl mb-3" elevation="0">
+        <v-card class="d-none d-md-block rounded-xl mb-3" elevation="0">
           <v-card-item>
             <div class="d-flex justify-space-between align-center">
               <h3 class="pa-1">{{ `موضوعات گفتگو ${route.params.id ? state.category?.find(item => item.id ==

@@ -71,7 +71,7 @@ fetchApi.get(apiPath.public.Expert.category+common.jsonToQueryString({ categoryI
 <template>
   <v-container>
     <v-row>
-      <v-col cols="12" :md="4" lg="3">
+      <v-col cols="12" :md="4" lg="3" class="d-none d-md-block">
         <v-expansion-panels class="rounded-xl" v-model="state.panel" multiple>
 
           <v-expansion-panel class="rounded-xl" title="زیر دسته">
@@ -123,34 +123,36 @@ fetchApi.get(apiPath.public.Expert.category+common.jsonToQueryString({ categoryI
         </v-expansion-panels>
       </v-col>
       <v-col cols="12" :md="8" lg="9">
+        <v-row class="d-md-none">
+          <v-slide-group>
+            <v-slide-group-item v-for="(item, index) in state.children" :key="index" v-slot="{ isSelected, toggle }">
+              <v-btn :color="isSelected ? 'blue' : undefined" class="ma-2" rounded :to="`/category/${item.id}/${item.title.replaceAll(' ','-')}`">
+                {{ item.title }}
+              </v-btn>
+            </v-slide-group-item>
+          </v-slide-group>
+        </v-row>
         <v-row>
           <v-col cols="6" md="4" lg="3" v-for="item in state.experts" :key="item.id">
-            <NuxtLink :to="`/expert/${item.id}/${item.firstName}%${item.lastName}`">
-              <v-card class="rounded-xl" min-height="320">
-                <v-card-item class="pa-3 position-relative">
-                  <BaseImage v-if="item.imageId" :src="item.imageId" class="rounded-xl"
-                    :is-thumbnail="true" ratio="1"/>
-                  <div class="rating">
-                    <v-icon class="text-white mx-2">mdi-thumb-up-outline</v-icon>
-                    <v-icon class="text-white mx-2 mt-3">mdi-thumb-down-outline</v-icon>
-                  </div>
-                </v-card-item>
-                <v-divider></v-divider>
-                <v-card-text class="mb-5"><h3 style="font-size: 1rem;">{{ item.firstName + ' ' + item.lastName }}</h3></v-card-text>
-                <v-card-item class="py-1">
-                  <h4>
-                    <span class="ml-9">
-                      <v-icon size="13" class="ml-2">mdi-calendar-month-outline</v-icon>
-                      <small>{{ dateConverter.someTimeAgo(item.createdOn) }}</small>
-                    </span>
-                    <span>
-                      <v-icon size="13" class="ml-2">mdi-eye-outline</v-icon>
-                      <small>{{ item.view }}</small>
-                    </span>
-                  </h4>
-                </v-card-item>
+            <v-card class="rounded-xl" :to="`/expert/${item.id}/${item.firstName}%${item.lastName}`">
+              <BaseImage v-if="item.imageId" :src="item.imageId" :is-thumbnail="true" ratio="1" />
+              <v-divider></v-divider>
+              <v-card flat class="ma-4 overflow-hidden" height="46px">
+                <h3 style="font-size: 1rem;">{{ item.firstName + ' ' + item.lastName }}</h3>
               </v-card>
-            </NuxtLink>
+              <v-card-text>
+                <p>
+                  <span class="ml-9">
+                    <v-icon size="13" class="ml-2">mdi-calendar-month-outline</v-icon>
+                    <small>{{ dateConverter.someTimeAgo(item.createdOn) }}</small>
+                  </span>
+                  <span>
+                    <v-icon size="13" class="ml-2">mdi-eye-outline</v-icon>
+                    <small>{{ item.view }}</small>
+                  </span>
+                </p>
+              </v-card-text>
+            </v-card>
           </v-col>
         </v-row>
       </v-col>

@@ -1,4 +1,5 @@
 <script setup>
+import noImage from "@/assets/svg/topicAvatar.svg"
 const messageInput = ref({})
 const route = useRoute()
 const state = reactive({
@@ -63,7 +64,7 @@ getCategories()
 
 const addNewPost = async () => {
   if (state.newPost.message) {
-    await axiosApi().post(apiPath.public.Post.post.add, { body: state.newPost })
+    await axiosApi().post(apiPath.public.Post.post.add, state.newPost )
       .then((res) => {
         common.showMessage(res.message)
         getpost()
@@ -74,15 +75,10 @@ const addNewPost = async () => {
   state.newPost.parentId = null
 }
 
-// const handleReply = (id) =>{
-//   state.replyTo = null
-//   state.newPost.parentId = id
-//   state.replyTo = state.post.find(item => item.id == id)
-//   messageInput.value.focus()
-// }
-
 const handleReply = (id) => {
-  state.newPost.parentId = id; // Set the parent ID to the post being replied to
+  if(state.newPost.parentId == id) state.newPost.parentId = null
+  else state.newPost.parentId = id; // Set the parent ID to the post being replied to
+  state.newPost.message = null
 };
 
 const clearReply = () => {
@@ -142,11 +138,11 @@ const setBreadCrumbs = () => {
                 <h2 class="text-18">{{ state.question.title }}</h2>
   
                 <!-- Expert Info -->
-                <v-card flat variant="text" class="d-flex gap-2 py-3" :to="`/expert/${state.question.expertId}`">
-                  <v-avatar size="60" class="border">
-                    <BaseImage class="rounded-circle" :is-thumbnail="true" />
+                <v-card flat variant="text" class="d-flex ga-3 my-3" :to="`/expert/${state.question.expertId}`">
+                  <v-avatar size="60">
+                    <BaseImage class="rounded-circle" :is-thumbnail="true" :no-image="noImage"/>
                   </v-avatar>
-                  <div class="d-flex flex-column">
+                  <div class="d-flex flex-column justify-center">
                     <h3 class="text-16">
                       {{ `${state.question.expertFirstName ?? ''} ${state.question.expertLastName ?? ''}` }}
                     </h3>
@@ -164,11 +160,15 @@ const setBreadCrumbs = () => {
                 <p class="my-3">{{ state.question.description ?? '' }}</p>
   
                 <v-divider></v-divider>
+
+                <div class="text-left pa-3">
+                  <v-btn color="blue" variant="plain" @click="handleReply(null)">پاسخ دادن</v-btn>
+                </div>
   
                 <!-- New Post Input -->
-                <v-textarea v-if="state.newPost" label="ایجاد متن جدید" variant="outlined" auto-grow clearable rows="1"
+                <v-textarea v-if="!state.newPost.parentId" label="ایجاد متن جدید" variant="outlined" auto-grow clearable rows="1"
                   ref="messageInput" v-model="state.newPost.message" prepend-inner-icon="mdi-send"
-                  @click:prepend-inner="addNewPost" class="py-3" hide-details />
+                  @click:prepend-inner="addNewPost" class="pt-3 pb-1" hide-details focused/>
               </div>
             </div>
           </v-card-item>
@@ -216,9 +216,9 @@ const setBreadCrumbs = () => {
               </div>
   
               <!-- Reply Input -->
-              <v-textarea v-if="state.newPost.parentId" label="پاسخ دادن" variant="outlined" auto-grow clearable rows="1"
+              <v-textarea v-if="state.newPost.parentId == item.id" label="پاسخ دادن" variant="outlined" auto-grow clearable rows="1"
                 ref="messageInput" v-model="state.newPost.message" prepend-inner-icon="mdi-send"
-                @click:prepend-inner="addNewPost" class="pa-3" hide-details />
+                @click:prepend-inner="addNewPost" class="pa-3 border-none" hide-details focused/>
             </v-card>
           </v-list-item>
         </v-list>

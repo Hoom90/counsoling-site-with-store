@@ -6,7 +6,7 @@ const breadCrumbs = publicbreadcrumbstore()
 <template>
       <BaseLoading v-if="app.getLoading"/>
       <LayoutThemeHeader/>
-      <v-main>
+      <v-main class="h-100">
             <v-container grid-list-xs class="pb-0">
                   <v-breadcrumbs v-if="breadCrumbs.getBreadCrumbs.length != 0" :items="breadCrumbs.getBreadCrumbs"
                         class="pt-1 pb-0">
