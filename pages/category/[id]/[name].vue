@@ -28,7 +28,7 @@ await fetchApi.get(apiPath.public.Category.get.byId(route.params.id))
     common.showError(error?.data?.messages)
   })
 
-fetchApi.post(apiPath.public.Category.post, { body: { "parentId": route.params.id } })
+fetchApi.get(apiPath.public.Category.post+common.jsonToQueryString({parentId: route.params.id}))
   .then((res) => {
     state.children = res.data.value.data
     state.children.forEach(item =>{
@@ -60,7 +60,7 @@ fetchApi.get(apiPath.public.Province.get)
  * get All Experts List by category id
  * @returns {Promise<void>}
   */
-fetchApi.post(apiPath.public.Expert.category, { body: { categoryId: route.params.id } })
+fetchApi.get(apiPath.public.Expert.category+common.jsonToQueryString({ categoryId: route.params.id }))
   .then((category) => {
     state.experts = category.data.value.data
   })

@@ -5,7 +5,7 @@ const state = reactive({
   payload: { pageSize: 10 },
 })
 
- fetchApi.post(apiPath.public.Expert.get.paged, { body: state.payload })
+ fetchApi.get(apiPath.public.Expert.get.paged+common.jsonToQueryString(state.payload))
   .then((res) => {
     state.data = res.data.value.data;
     app.setloading(false)

@@ -1,15 +1,18 @@
 <script setup>
-publicbreadcrumbstore().setBreadCrumbs([
-  {
-    title: 'خانه',
-    disabled: false,
-    to: '/',
+const state = reactive({
+  data: [],
+  metadata: {
+    pageIndex: 1,
+    pageSize: 50,
+    totalPages: 0,
+    totalCount: 0,
+    hasPreviousPage: false,
+    hasNextPage: false,
+    parameters: null,
+    contentType: 2
   },
-  {
-    title: 'مقالات',
-    disabled: true,
-    to: '/article',
-  }])
+  loading: true,
+})
 
 useHead({
   title: 'مقالات',
@@ -17,86 +20,58 @@ useHead({
   meta: [{ name: 'keywords', content: 'مقالات,سحاب,آخرین,جدیدترین' }],
 })
 
-const table = ref()
-
-const state = reactive({
-  data: [],
-  page: {
-    header: {
-      pageSize: 50,
-      pageIndex: 1,
-      contentType: 2
-    },
-    totalPages:0,
-    height: 0,
-  },
-  loading: false,
-  timeoutState: null,
-  scroll: 0,
-})
-
 onMounted(async () => {
-  window.addEventListener("scroll", async (event) => {
-    state.test = window.scrollY
-    state.page.height = table.value.clientHeight
-    if (window.scrollY > state.scroll && !(state.page.header.pageIndex > state.page.totalPages))
-      if (window.scrollY > 0 && window.scrollY > (state.page.height * 0.6) && !state.loading) {
-        state.loading = true
-        clearTimeout(state.timeoutState)
-        state.timeoutState = setTimeout(async () => {
-          await getData()
-        }, 10)
-      }
-    state.scroll = window.scrollY
-  });
+  publicbreadcrumbstore().setBreadCrumbs([
+    {
+      title: 'خانه',
+      disabled: false,
+      to: '/',
+    },
+    {
+      title: 'مقالات',
+      disabled: true,
+      to: '/article',
+    }])
 })
 
-const getData = async () => {
-  await axiosApi().post(apiPath.public.Article.get.all, state.page.header)
-    .then((res) => {
-      state.data = state.data.concat(res.data)
-    })
-    .catch((error) => {
-      common.showError(error?.data?.messages)
-    })
-    .finally(() => {
-      state.loading = false
-    })
-  state.page.header.pageIndex++
-}
 
-await fetchApi.post(apiPath.public.Article.get.all, { body: state.page.header })
+await fetchApi.get(apiPath.public.Article.get.all + common.jsonToQueryString(state.metadata))
   .then((res) => {
     state.data = res.data.value.data
-    state.page.totalPages = res.data.value.metadata.totalPages
-    state.page.header.pageIndex++
-  }).catch(error => {
-    common.showError(error?.data?.messages)
+    state.metadata = res.data.value.metadata
   })
+  .catch(error => common.showError(error?.data?.messages))
+  .finally(() => state.loading = false)
 
-
-
+const getData = async () => {
+  const payload = {
+    pageIndex: state.metadata.pageIndex++,
+    contentType: 2
+  }
+  await axiosApi().get(apiPath.public.Article.get.all+common.jsonToQueryString(payload))
+    .then((res) => state.data = state.data.concat(res.data))
+    .catch((error) => common.showError(error?.data?.messages))
+}
 </script>
 <template>
-  <v-container style="min-height: 800px;">
-    <div ref="table">
-      <v-row class="d-flex justify-center align-center ga-3 mb-5 flex-column">
-        <h2 style="font-size: 1.3rem;">جدیدترین مقالات</h2>
-      </v-row>
-      <v-row>
-        <v-col cols="6" sm="4" md="3" lg="2" v-for="item in state.data" :key="item.id">
+  <v-container>
+    <v-card flat variant="text" min-height="800">
+      <v-card flat variant="text" class="d-flex flex-column justify-center align-center ga-3">
+        <h2 class="text-20">جدیدترین مقالات</h2>
+      </v-card>
+      <v-row v-if="!state.loading">
+        <v-col cols="6" sm="4" md="3" lg="2" v-for="(item, index) in state.data" :key="index">
           <nuxtLink :to="`article/${item.id}/${item.title.replaceAll(' ','-')}`">
-            <v-card class="grid-box rounded-xl h-100" min-height="280">
-              <v-card-item class="pa-3 position-relative">
+            <v-card class="grid-box rounded-xl h-100">
+              <v-card-text>
                 <BaseImage :src="item.image" class="rounded-xl" :is-thumbnail="true" :alt="item.title"/>
-              </v-card-item>
-              <v-divider></v-divider>
-              <v-card-text style="min-height: 60px">
-                <p style="text-wrap: pretty;">
-                  <strong>{{ `${item.title.slice(0,38)}${item.title.length>38?'...':''}` }}</strong>
-                </p>
               </v-card-text>
-              <v-card-item class="py-1">
+              <v-card flat class="text-center text-wrap pa-3">
+                <h3 class="text-16">
+                  <strong>{{ `${item.title.slice(0,38)}${item.title.length>38?'...':''}` }}</strong>
+                </h3>
+              </v-card>
+              <v-card-item>
                 <p>
                   <span class="ml-9">
                     <v-icon size="13" class="ml-2">mdi-calendar-month-outline</v-icon>
@@ -112,6 +87,9 @@ await fetchApi.post(apiPath.public.Article.get.all, { body: state.page.header })
           </nuxtLink>
         </v-col>
       </v-row>
-    </div>
+      <v-card v-if="state.metadata.totalCount > state.metadata.pageSize" flat variant="text" class="text-center">
+        <v-btn class="bg-teal mt-3 rounded" icon="mdi-sync" @click="getData"></v-btn>
+      </v-card>
+    </v-card>
   </v-container>
 </template>

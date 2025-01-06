@@ -5,14 +5,15 @@ const user = userStore()
 const state = reactive({
   topic: [],
   category: [],
-  payload: {
-    topicHeader: {
-      pageSize: 50,
-      pageIndex: 1,
-      categoryId: null,
-    },
+  metadata: {
+    pageIndex: 1,
+    pageSize: 10,
     totalPages: 0,
-    height: 0,
+    totalCount: 0,
+    hasPreviousPage: false,
+    hasNextPage: true,
+    parameters: null,
+    categoryId:null,
   },
   keywords: '',
   newTopic: {
@@ -22,156 +23,87 @@ const state = reactive({
     isActive: true,
   },
   dialogAdd: false,
-  breadTitle: '',
-  //#region FILTER
   panel: [0, 1],
-  //#endregion
-  //#region SCROLL LOADING
-  loading: false,
-  timeoutState: null,
-  scroll: 0,
-  //#endregion
 })
 
-//#region GET
-// onMounted(async () => {
-//   window.addEventListener("scroll", async (event) => {
-//     state.test = window.scrollY
-//     state.payload.height = document.getElementById('table').clientHeight
-//     if (window.scrollY > state.scroll && !(state.payload.topicHeader.pageIndex > state.payload.totalPages)){
-//       if (window.scrollY > 0 && window.scrollY > (state.payload.height * 0.4) && !state.loading) {
-//           state.loading = true
-//           clearTimeout(state.timeoutState)
-//           state.timeoutState = setTimeout(async () => {
-//             await getNoSSRData()
-//             state.loading = false
-//             state.payload.topicHeader.pageIndex++
-//           }, 10)
-//         }
-//       state.scroll = window.scrollY
-//     }
-//   });
-// })
-
-//#region getCategorySSR
-/** get categories in ssr mode **/
-fetchApi.post(apiPath.public.Category.post, { body: {} })
-  .then((res) => {
-    state.category = res.data.value.data
-    state.category.forEach(item => {
-      state.keywords = item.title + ',' + state.keywords
+const getCategories = () =>{
+  fetchApi.get(apiPath.public.Category.post)
+    .then((res) => {
+      state.category = res.data.value.data
+      state.keywords = state.category.map(item => item.title).join(',');
+      setHead()
     })
-    useHead({
-      title: route.params.id ? `تالار گفتگو - ${state.category.find(x=>x.id == route.params.id.split('-').find(x=>x)).title}` : 'تالار گفتگو',
-      meta: [
-        { name: 'description', content: route.params.id ? `تالار گفتگو - ${state.category.find(x=>x.id == route.params.id.split('-').find(x=>x))}` : 'تالار گفتگو' },
-        { name: 'keywords', content: `${state.keywords}` },
-      ]
-    })
-  })
-  .catch((error) => {
-    common.showError(error?.data?.messages)
-  })
-//#endregion
+    .catch((error) => common.showError(error?.data?.messages))
+}
 
-// const getNoSSRData = async () => {
-//   state.payload.topicHeader.pageSize = 50
-//   await axiosApi().post(apiPath.public.Topic.post.pagination, state.payload.topicHeader)
-//     .then((res) => {
-//       state.topic = state.topic.concat(res.data)
-//       state.payload.topicHeader.pageIndex++
-//     })
-//     .catch((error) => {
-//       common.showError(error?.data?.messages)
-//     })
-// }
+const getSSRData = () => {
+  if (route.params.id) {
+    state.metadata.categoryId = route.params.id.split('-').find(x => x)
+    state.newTopic.categoryId = route.params.id.split('-').find(x => x)
+  }else {
+    delete state.metadata.categoryId;
+  }
+  fetchApi.get(apiPath.public.Topic.post.pagination + common.jsonToQueryString(state.metadata))
+    .then((res) => {
+      state.topic = state.topic.concat(res.data.value.data)
+      state.metadata = res.data.value.metadata
+      setPageBreadcrumb()
+    })
+    .catch((error) => common.showError(error?.data?.messages))
+}
+
+getCategories()
+getSSRData()
 
 const getNewData = () => {
-  state.payload.topicHeader.pageIndex++
+  state.metadata.pageIndex++
   getSSRData()
 }
 
-const getSSRData = async () => {
-  await fetchApi.post(apiPath.public.Topic.post.pagination, { body: state.payload.topicHeader })
-    .then((res) => {
-      state.topic = state.topic.concat(res.data.value.data)
-      // state.topic = res.data.value.data
-      state.payload.totalPages = res.data.value.metadata.totalPages
-      setPageBreadcrumb()
-    })
-    .catch((error) => {
-      common.showError(error?.data?.messages)
-    })
+const setHead = () => {
+  useHead({
+    title: route.params.id ? `تالار گفتگو - ${state.category.find(x => x.id == route.params.id.split('-').find(x => x)).title}` : 'تالار گفتگو',
+    meta: [
+      { name: 'description', content: route.params.id ? `تالار گفتگو - ${state.category.find(x => x.id == route.params.id.split('-').find(x => x))}` : 'تالار گفتگو' },
+      { name: 'keywords', content: `${state.keywords}` },
+    ]
+  })
 }
 
 const setPageBreadcrumb = () => {
+  const temp = [
+    {
+      title: 'خانه',
+      to: '/',
+    },
+    {
+      title: 'تالار گفتگو',
+      to: '/forum',
+    },
+  ]
   if (route.params.id) {
-    publicbreadcrumbstore().setBreadCrumbs([
-      {
-        title: 'خانه',
-        disabled: false,
-        to: '/',
-      },
-      {
-        title: 'تالار گفتگو',
-        disabled: false,
-        to: '/forum',
-      },
-      {
-        title: state.category?.find(item => item.id == route.params.id.split('-').find(x=>x))?.title ?? '',
-        disabled: true,
-        to: route.params.id.split('-').find(x=>x),
-      },
-    ])
+    const page = {
+      title: state.category?.find(item => item.id == route.params.id.split('-').find(x => x))?.title ?? '',
+      to: route.params.id.split('-').find(x => x),
+    }
+    temp.push(page)
   }
-  else {
-    publicbreadcrumbstore().setBreadCrumbs([
-      {
-        title: 'خانه',
-        disabled: false,
-        to: '/',
-      },
-      {
-        title: 'تالار گفتگو',
-        disabled: true,
-        to: '/forum',
-      },
-    ])
-  }
+  publicbreadcrumbstore().setBreadCrumbs(temp)
 }
-
-
-if (route.params.id) {
-  state.payload.topicHeader.pageSize = 10
-  state.payload.topicHeader.categoryId = route.params.id.split('-').find(x=>x)
-  state.newTopic.categoryId = route.params.id.split('-').find(x=>x)
-  getSSRData()
-}
-else {
-  state.payload.topicHeader.pageSize = 10
-  state.payload.topicHeader.categoryId = null
-  getSSRData()
-}
-
-
-//#endregion
 
 //#region POST
 const postTopic = async (r) => {
   if (r) {
     const { valid } = await verifyForm.value.validate()
-    if (!valid) return
-
-
-    await axiosApi().post(apiPath.ExpertTopic.post.add, state.newTopic)
-      .then(async (res) => {
-        common.showMessage(res.message)
-        state.topic = []
-        await getSSRData()
-      })
-      .catch((error) => {
-        common.showError(error?.data?.messages)
-      })
+    if (valid) {
+      await axiosApi().post(apiPath.ExpertTopic.post.add, state.newTopic)
+        .then((res) => {
+          common.showMessage(res.message)
+          state.topic = []
+          getSSRData()
+        })
+        .catch((error) => common.showError(error?.data?.messages))
+    }
   }
   state.dialogAdd = false
   state.newTopic = {
@@ -227,7 +159,7 @@ const postTopic = async (r) => {
                 <v-divider></v-divider>
                 <v-card-text class="pa-5 px-5">
                   <nuxt-link :to="`/topic/${item.id}-${item.title.replaceAll(' ','-')}`" class="text-black">
-                    <h7>{{ item.description }}</h7>
+                    <p>{{ item.description }}</p>
                   </nuxt-link>
                 </v-card-text>
                 <v-divider></v-divider>
@@ -250,13 +182,13 @@ const postTopic = async (r) => {
             </v-col>
           </v-row>
           <v-btn color="theme-blue" class="w-100 mt-5 rounded-xl" @click="getNewData"
-            v-if="state.payload.topicHeader.pageIndex < state.payload.totalPages">بیشتر</v-btn>
+            v-if="state.metadata.totalCount > state.metadata.pageSize && state.metadata.totalPages > state.metadata.pageIndex">بیشتر</v-btn>
         </div>
 
-        <v-card v-if="state.payload.totalPages == 0" class="rounded-xl mt-5 text-center" elevation="0">
+        <v-card v-if="state.metadata.totalCount == 0" class="rounded-xl mt-5 text-center" elevation="0">
           <v-card-item class="pa-10">
             <strong class="text-grey">
-            این تالار هنوز خالیه :(
+              این تالار هنوز خالیه
             </strong>
           </v-card-item>
         </v-card>

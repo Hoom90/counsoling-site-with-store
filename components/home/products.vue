@@ -13,7 +13,7 @@ const state = reactive({
 })
 const modules = [Navigation]
 
-const data = await fetchApi.post(apiPath.public.Product.getAll, {body:{}})
+const data = await fetchApi.get(apiPath.public.Product.getAll)
   .then((res) => {
     app.setloading(false)
     return res.data.value.data;

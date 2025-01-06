@@ -70,6 +70,12 @@ export default
             delayCallFunction = setTimeout(() => {
                 func(input)
             }, delay);
+        },
+        jsonToQueryString(json) {
+            var query = Object.keys(json)
+                .map(key => encodeURIComponent(key) + '=' + encodeURIComponent(json[key]))
+                .join('&');
+            return query ? `?${query}` : ''
         }
 
     }

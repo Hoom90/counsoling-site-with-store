@@ -51,7 +51,7 @@ await fetchApi.get(apiPath.public.Product.getById(route.params.id), {})
     common.showError(error?.messages)
   })
 
-await fetchApi.post(apiPath.public.Product.getAll, {body:{}})
+await fetchApi.get(apiPath.public.Product.getAll)
   .then((res) => {
     state.products = res.data.value.data.map(x=>{
       x.link = `/product/${x.id}-${x.title.replaceAll(' ','-')}`
@@ -237,7 +237,7 @@ const putDislike = async (id) => {
           <swiper-slide v-for="(item, index) in state.products" :key="index">
             <v-card flat class="rounded pa-1 border" :to="item.link">
               <v-card-text class="pa-1">
-                <BaseImage :src="item.image" width="100%" class="rounded" />
+                <BaseImage :src="item.imageList.find(x=>x).id" width="100%" class="rounded" />
                 <v-card-title>
                   <strong class="text-14">{{ item.title }}</strong>
                 </v-card-title>

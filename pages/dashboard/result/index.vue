@@ -91,6 +91,7 @@ const resetNewResult = () =>{
     categoryId:0,
     title: null,
     defaultValue: null,
+    visibleToUser: true,
   }
 }
 
@@ -167,7 +168,7 @@ const handleEdit = (item) =>{
     <v-form @submit.prevent="postData" ref="verifyForm">
       <v-text-field v-model="state.newResult.title" :rules="validator.result.title" variant="outlined" label="عنوان"></v-text-field>
       <v-text-field v-model="state.newResult.defaultValue" variant="outlined" label="مقدار اولیه"></v-text-field>
-      <v-switch v-model="state.newResult.visibleToUser" label="نمایش به کارشناس" va></v-switch>
+      <v-switch v-model="state.newResult.visibleToUser" :label="state.newResult.visibleToUser ? 'نمایش به کاربر' : 'پنهان از کاربر'" color="primary" :false-value="false" :true-value="true"></v-switch>
     </v-form>
   </mj-dialog>
 
@@ -176,7 +177,7 @@ const handleEdit = (item) =>{
     <v-form @submit.prevent="putData" ref="verifyForm">
       <v-text-field v-model="state.newResult.title" :rules="validator.result.title" variant="outlined" label="عنوان"></v-text-field>
       <v-text-field v-model="state.newResult.defaultValue" variant="outlined" label="مقدار اولیه"></v-text-field>
-      <v-switch v-model="state.newResult.visibleToUser" label="نمایش به کارشناس"></v-switch>
+      <v-switch v-model="state.newResult.visibleToUser" :label="state.newResult.visibleToUser ? 'نمایش به کاربر' : 'پنهان از کاربر'" color="primary" :false-value="false" :true-value="true"></v-switch>
     </v-form>
   </mj-dialog>
 

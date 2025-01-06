@@ -1,17 +1,10 @@
 <script setup>
-import mother from '@/assets/img/icons/mother.png'
-import open_book from '@/assets/img/icons/open-book.png'
-import girl from '@/assets/img/icons/girl.png'
-import delivery_boy from '@/assets/img/icons/delivery-boy.png'
-import sexual from '@/assets/img/icons/sexual.png'
-import students from '@/assets/img/icons/students.png'
 const state = reactive({
-  images: [mother, open_book, girl, delivery_boy, sexual, students],
   categories:[],
   payload: { pageSize: 10 }
 })
 
-fetchApi.post(apiPath.public.Category.post, { body: state.payload })
+fetchApi.get(apiPath.public.Category.post+common.jsonToQueryString(state.payload))
   .then((res) => state.categories = res.data.value.data.slice(0,6))
   .catch(error => common.showError(error?.messages))
 </script>

@@ -25,7 +25,7 @@ onMounted(()=>{
 })
 
 const getCategories = async () =>{
-  await axiosApi().post(apiPath.public.Category.post,{})
+  await axiosApi().get(apiPath.public.Category.post)
     .then((res) => state.asideDefault[4].children = res.data)
     .catch(error => common.showError(error?.messages))
 }

@@ -16,6 +16,11 @@ const state = reactive({
     { name: "اخبار", icon: 'mdi-newspaper', url: "/news" },
     { name: "دسته بندی", icon: 'mdi-rhombus-split-outline', hasChildren: true, children: [] },
   ],
+  asidePage:[
+    { title: "درباره ما", id:53 },
+    { title: "تماس با ما", id:99},
+    { title: "شرایط و قوانین", id:168 },
+  ],
   asidePages: [],
   categorySelect: false,
 })
@@ -25,14 +30,10 @@ onMounted(()=>{
 })
 
 const getCategories = async () =>{
-  await axiosApi().post(apiPath.public.Category.post,{})
+  await axiosApi().get(apiPath.public.Category.post)
     .then((res) => state.asideDefault[4].children = res.data)
     .catch(error => common.showError(error?.messages))
 }
-
-const pages = await fetchApi.get(`${apiPath.public.Page.query}?ContentType=3`)
-  .then((res) => res.data.value)
-  .catch(error => common.showError(error?.messages))
 
 const theme = useTheme();
 const toggleTheme = () => {
@@ -74,7 +75,7 @@ async function logOut() {
       <v-divider></v-divider>
 
       <v-list-item prepend-icon="mdi-rhombus-split-outline" :title="item.title" active-class="text-blue" :to="`/page/${item.id}/${item.title.replaceAll(' ','-')}`"
-        v-for="item in pages"></v-list-item>
+        v-for="item in state.asidePage"></v-list-item>
     </v-list>
     <template v-slot:append>
       <div class="pa-2" v-if="user.getAuth">

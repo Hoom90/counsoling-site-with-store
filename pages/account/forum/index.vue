@@ -34,7 +34,7 @@ const getData = async () => {
 }
 
 const getCategory = async () =>{
-  await axiosApi().post(apiPath.public.Category.post,{})
+  await axiosApi().get(apiPath.public.Category.post)
   .then((res)=>state.category = res.data)
   .catch((error)=>common.showError(error?.data?.messages))
 }

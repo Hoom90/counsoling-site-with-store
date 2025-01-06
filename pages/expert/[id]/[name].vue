@@ -385,7 +385,7 @@ const selectedReserve = (reserve) => {
                 <div class="pa-4" v-html="state.data?.additionalText ?? ''"></div>
               </v-window-item>
               <v-window-item value="two">
-                <ExoertCommentCompExpert />
+                <ExpertCommentComp/>
               </v-window-item>
             </v-window>
 
